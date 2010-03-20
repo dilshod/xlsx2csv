@@ -13,13 +13,13 @@ from xml.dom import minidom
 def xlsx2csv(infilepath, outfile):
     writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL)
     ziphandle = zipfile.ZipFile(infilepath)
-    self.shared_strings = SharedStrings(ziphandle.read("xl/sharedStrings.xml"))
+    shared_strings = SharedStrings(ziphandle.read("xl/sharedStrings.xml"))
 
     #self.workbook = Workbook(ziphandle.read("xl/workbook.xml"))
     #for i in self.workbook.sheets:
     #    SharedStrings(ziphandle.read("xl/worksheets/sheet%s.xml" %(i['id'])))
 
-    Sheet(self.shared_strings, ziphandle.read("xl/worksheets/sheet1.xml"), writer)
+    Sheet(shared_strings, ziphandle.read("xl/worksheets/sheet1.xml"), writer)
     ziphandle.close()
 
 class Workbook(object):
@@ -155,10 +155,10 @@ class Sheet:
 
 if __name__ == "__main__":
     if len(sys.argv) == 2:
-        XLSX2CSV(sys.argv[1], sys.stdout)
+        xlsx2csv(sys.argv[1], sys.stdout)
     elif len(sys.argv) == 3:
         f = open(sys.argv[2], "w+")
-        XLSX2CSV(sys.argv[1], f)
+        xlsx2csv(sys.argv[1], f)
         f.close()
     else:
         print "Usage: xlsx2csv <infile> [<outfile>]"
