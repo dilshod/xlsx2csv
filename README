@@ -1,0 +1,23 @@
+xlsx2csv convertor
+==================
+
+It is fast, and works for very big xlsx files.
+Expat SAX parser used for xml parsing.
+
+Usage:
+./xlsx2csv.py test.xlsx test.csv
+
+Alternatives:
+
+Bash:
+http://kirk.webfinish.com/2009/12/xlsx2csv/
+
+Python:
+http://github.com/staale/python-xlsx
+http://github.com/leegao/pyXLSX
+
+Ruby:
+http://roo.rubyforge.org/
+
+Java:
+http://poi.apache.org/
