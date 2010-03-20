@@ -101,11 +101,14 @@ class Sheet:
             #elif self.colType == "b": # boolean
             elif self.s_attr:
                 if self.s_attr == '2':
-                    self.data = (datetime.date(1899, 12, 30) + datetime.timedelta(float(data))).strftime("%Y-%m-%d")
+                    # date
+                    self.data = (datetime.date(1899, 12, 30) + datetime.timedelta(float(data))).strftime("%m/%d/%y")
                 elif self.s_attr == '3':
+                    # time
                     self.data = str(float(data) * 24*60*60)
-                elif self.s_attr == '4':
-                    self.data = (datetime.datetime(1899, 12, 30) + datetime.timedelta(float(data))).strftime("%Y-%m-%d %H:%M:%S")
+                    # datetime
+                elif self.s_attr == '1':
+                    self.data = (datetime.datetime(1899, 12, 30) + datetime.timedelta(float(data))).strftime("%m/%d/%y %H:%M")
                 else:
                     self.data = data
             else:
