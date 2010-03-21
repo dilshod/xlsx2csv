@@ -1,5 +1,4 @@
 xlsx2csv convertor
-==================
 
 It is fast, and works for very big xlsx files.
 Expat SAX parser used for xml parsing.
