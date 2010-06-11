@@ -2,7 +2,6 @@
 
 __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
 
-
 import csv, datetime, zipfile, sys
 import xml.parsers.expat
 from xml.dom import minidom
@@ -15,6 +14,7 @@ def xlsx2csv(infilepath, outfile):
     ziphandle = zipfile.ZipFile(infilepath)
     shared_strings = SharedStrings(ziphandle.read("xl/sharedStrings.xml"))
 
+    # multisheet:
     #self.workbook = Workbook(ziphandle.read("xl/workbook.xml"))
     #for i in self.workbook.sheets:
     #    SharedStrings(ziphandle.read("xl/worksheets/sheet%s.xml" %(i['id'])))
@@ -74,13 +74,9 @@ class Sheet:
     in_cell_value = False
     in_cell_formula = False
 
-    #rows = []
-    #cells = {}
     columns = {}
     rowNum = None
     colType = None
-    #cellId = None
-    #formula = None
     s_attr = None
     data = None
 
@@ -108,11 +104,16 @@ class Sheet:
                     self.data = str(float(data) * 24*60*60)
                     # datetime
                 elif self.s_attr == '1':
-                    self.data = (datetime.datetime(1899, 12, 30) + datetime.timedelta(float(data))).strftime("%m/%d/%y %H:%M")
+                    try:
+                        self.data = (datetime.datetime(1899, 12, 30) + datetime.timedelta(float(data))).strftime("%m/%d/%y %H:%M")
+                    except ValueError:
+                        # invalid date format
+                        self.data = data
                 else:
                     self.data = data
             else:
                 self.data = data
+        # does not support it yet
         #elif self.in_cell_formula:
         #    self.formula = data
 
@@ -149,8 +150,7 @@ class Sheet:
         if self.in_row and name == 'row':
             d = [""] * (max(self.columns.keys()) + 1)
             for k in self.columns.keys():
-                d[k] = self.columns[k]
-            #self.rows.append(d)
+                d[k] = self.columns[k].encode("utf-8")
             self.writer.writerow(d)
             self.in_row = False
         elif self.in_sheet and name == 'sheetData':
