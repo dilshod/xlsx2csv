@@ -98,7 +98,11 @@ class Sheet:
             elif self.s_attr:
                 if self.s_attr == '2':
                     # date
-                    self.data = (datetime.date(1899, 12, 30) + datetime.timedelta(float(data))).strftime("%m/%d/%y")
+                    try:
+                        self.data = (datetime.date(1899, 12, 30) + datetime.timedelta(float(data))).strftime("%m/%d/%y")
+                    except (ValueError, OverflowError):
+                        # invalid date format
+                        self.data = data
                 elif self.s_attr == '3':
                     # time
                     self.data = str(float(data) * 24*60*60)
@@ -106,7 +110,7 @@ class Sheet:
                 elif self.s_attr == '1':
                     try:
                         self.data = (datetime.datetime(1899, 12, 30) + datetime.timedelta(float(data))).strftime("%m/%d/%y %H:%M")
-                    except ValueError:
+                    except (ValueError, OverflowError):
                         # invalid date format
                         self.data = data
                 else:
