@@ -106,7 +106,8 @@ def xlsx2csv(infilepath, outfile, sheetid=1, dateformat=None, delimiter=",", she
             sheet.to_csv(writer)
         else:
             for s in workbook.sheets:
-                outfile.write(sheetdelimiter + " " + str(s['id']) + " - " + s['name'] + "\r\n")
+                if sheetdelimiter != "":
+                    outfile.write(sheetdelimiter + " " + str(s['id']) + " - " + s['name'] + "\r\n")
                 sheet = Sheet(shared_strings, styles, ziphandle.read("xl/worksheets/sheet%i.xml" %s['id']))
                 sheet.set_dateformat(dateformat)
                 sheet.to_csv(writer)
@@ -310,7 +311,7 @@ if __name__ == "__main__":
     parser.add_option("-d", "--delimiter", dest="delimiter", default=",",
       help="delimiter - csv columns delimiter, 'tab' or 'x09' for tab (comma is default)")
     parser.add_option("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
-      help="sheets delimiter used when processing all sheets (default '--------')")
+      help="sheets delimiter used to separate sheets, pass '' if you don't want delimiters (default '--------')")
     parser.add_option("-f", "--dateformat", dest="dateformat",
       help="override date/time format (ex. %Y/%m/%d)")
 
