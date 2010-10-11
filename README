@@ -1,6 +1,7 @@
 xlsx2csv convertor
 
-It is fast, and works for very big xlsx files.
+Converts xslx xml excel files to csv format.
+It is fast, and works for huge xlsx files.
 Expat SAX parser used for xml parsing.
 
 Usage:
