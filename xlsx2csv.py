@@ -41,6 +41,9 @@ FORMATS = {
   "dd/mm/yy\\ hh:mm" : 'date',
   'yy-mm-dd' : 'date',
   'd-mmm-yyyy' : 'date',
+  'm/d/yy' : 'date',
+  'm/d/yyyy' : 'date',
+  'dd-mmm-yyyy' : 'date',
   'mm/dd/yy hh:mm am/pm' : 'date',
   'mm/dd/yyyy hh:mm:ss' : 'date',
 }
