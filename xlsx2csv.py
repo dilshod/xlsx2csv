@@ -245,14 +245,15 @@ class Sheet:
                         try:
                             date = datetime.date(1899, 12, 30) + datetime.timedelta(float(data))
                             if self.dateformat:
-                                self.data = date.strftime(self.dateformat)
+                                # str(dateformat) - python2.5 bug, see: http://bugs.python.org/issue2782
+                                self.data = date.strftime(str(self.dateformat))
                             else:
                                 dateformat = format.replace("yyyy", "%Y").replace("yy", "%y"). \
                                   replace("hh:mm", "%h:%M").replace("hh", "%h").replace("ss", "%S"). \
                                   replace("d", "%e").replace("%e%e", "%d"). \
                                   replace("mmmm", "%B").replace("mmm", "%b").replace("mm", "%m"). \
                                   replace("am/pm", "%p")
-                                self.data = date.strftime(dateformat).strip()
+                                self.data = date.strftime(str(dateformat)).strip()
                         except (ValueError, OverflowError):
                             # invalid date format
                             self.data = data
@@ -340,4 +341,4 @@ if __name__ == "__main__":
         xlsx2csv(args[0], f, **kwargs)
         f.close()
     else:
-        parser.print_usage()
+        parser.print_help()
