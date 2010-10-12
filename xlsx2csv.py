@@ -291,8 +291,8 @@ class Sheet:
         #    self.in_cell_formula = False
         elif self.in_cell and name == 'c':
             t = 0
-            for i in self.colNum: t = t*26 + ord(i) - 65
-            self.columns[t] = self.data
+            for i in self.colNum: t = t*26 + ord(i) - 64
+            self.columns[t - 1] = self.data
             self.in_cell = False
         if self.in_row and name == 'row':
             if len(self.columns.keys()) > 0:
