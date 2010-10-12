@@ -2,12 +2,26 @@ xlsx2csv convertor
 
 Converts xslx xml excel files to csv format.
 It is fast, and works for huge xlsx files.
+
+Usage: xlsx2csv.py [options] infile [outfile]
+
+Options:
+  --version             show program's version number and exit
+  -h, --help            show this help message and exit
+  -s SHEETID, --sheet=SHEETID
+                        sheet no to convert (0 for all sheets)
+  -d DELIMITER, --delimiter=DELIMITER
+                        delimiter - csv columns delimiter, 'tab' or 'x09' for
+                        tab (comma is default)
+  -p SHEETDELIMITER, --sheetdelimiter=SHEETDELIMITER
+                        sheets delimiter used to separate sheets, pass '' if
+                        you don't want delimiters (default '--------')
+  -f DATEFORMAT, --dateformat=DATEFORMAT
+                        override date/time format (ex. %Y/%m/%d)
+
 Expat SAX parser used for xml parsing.
 
-Usage:
-./xlsx2csv.py test.xlsx test.csv
-
-Alternatives:
+See alternatives:
 
 Bash:
 http://kirk.webfinish.com/2009/12/xlsx2csv/
