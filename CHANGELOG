@@ -1,0 +1,11 @@
+
+version 0.1 (2010-sep-12):
+  * better support for date/time formats
+  * two letter columns bug fixed
+  * sheets support added
+  * unicode fix
+  * boolean type
+  - thanks to Neil Killeen
+
+version 0.0 (2010-jun-11):
+  * xlsx to csv convertor first release
