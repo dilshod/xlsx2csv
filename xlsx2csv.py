@@ -142,16 +142,18 @@ class Styles:
     def parse(self, data):
         styles = minidom.parseString(data).firstChild
         # numFmts
-        numFmtsElement = styles.getElementsByTagName("numFmts")[0]
-        for numFmt in numFmtsElement.childNodes:
-            numFmtId = int(numFmt._attrs['numFmtId'].value)
-            formatCode = numFmt._attrs['formatCode'].value.lower().replace('\\', '')
-            self.numFmts[numFmtId] = formatCode
+        numFmtsElement = styles.getElementsByTagName("numFmts")
+        if len(numFmtsElement) == 1:
+            for numFmt in numFmtsElement[0].childNodes:
+                numFmtId = int(numFmt._attrs['numFmtId'].value)
+                formatCode = numFmt._attrs['formatCode'].value.lower().replace('\\', '')
+                self.numFmts[numFmtId] = formatCode
         # cellXfs
-        cellXfsElement = styles.getElementsByTagName("cellXfs")[0]
-        for cellXfs in cellXfsElement.childNodes:
-            numFmtId = int(cellXfs._attrs['numFmtId'].value)
-            self.cellXfs.append(numFmtId)
+        cellXfsElement = styles.getElementsByTagName("cellXfs")
+        if len(cellXfsElement) == 1:
+            for cellXfs in cellXfsElement[0].childNodes:
+                numFmtId = int(cellXfs._attrs['numFmtId'].value)
+                self.cellXfs.append(numFmtId)
 
 class SharedStrings:
     parser = None
