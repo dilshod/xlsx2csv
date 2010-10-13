@@ -307,7 +307,7 @@ class Sheet:
             self.in_sheet = False
 
 if __name__ == "__main__":
-    parser = OptionParser(usage = "%prog [options] infile [outfile]", version="0.1")
+    parser = OptionParser(usage = "%prog [options] infile [outfile]", version="0.11")
     parser.add_option("-s", "--sheet", dest="sheetid", default=1, type="int",
       help="sheet no to convert (0 for all sheets)")
     parser.add_option("-d", "--delimiter", dest="delimiter", default=",",
