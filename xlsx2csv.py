@@ -305,9 +305,9 @@ class Sheet:
                 for k in self.columns.keys():
                     d[k] = self.columns[k].encode("utf-8")
                 if self.spans:
-                    d = (self.spans[0] - 1) * [''] + d
-                    if self.spans[1] > len(d):
-                        d+= (self.spans[1] - len(d)) * ['']
+                    l = self.spans[0] + self.spans[1] - 1
+                    if len(d) < l:
+                        d+= (l - len(d)) * ['']
                 self.writer.writerow(d)
             self.in_row = False
         elif self.in_sheet and name == 'sheetData':
