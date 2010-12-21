@@ -283,6 +283,9 @@ class Sheet:
             self.rowNum = attrs['r']
             self.in_row = True
             self.columns = {}
+            self.spans = None
+            if attrs.has_key('spans'):
+                self.spans = [int(i) for i in attrs['spans'].split(":")]
         elif name == 'sheetData':
             self.in_sheet = True
 
@@ -301,6 +304,10 @@ class Sheet:
                 d = [""] * (max(self.columns.keys()) + 1)
                 for k in self.columns.keys():
                     d[k] = self.columns[k].encode("utf-8")
+                if self.spans:
+                    d = (self.spans[0] - 1) * [''] + d
+                    if self.spans[1] > len(d):
+                        d+= (self.spans[1] - len(d)) * ['']
                 self.writer.writerow(d)
             self.in_row = False
         elif self.in_sheet and name == 'sheetData':
