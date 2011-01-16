@@ -107,7 +107,7 @@ def xlsx2csv(infilepath, outfile, sheetid=1, dateformat=None, delimiter=",", she
         else:
             for s in workbook.sheets:
                 if sheetdelimiter != "":
-                    outfile.write(sheetdelimiter + " " + str(s['id']) + " - " + s['name'] + "\r\n")
+                    outfile.write(sheetdelimiter + " " + str(s['id']) + " - " + s['name'].encode('utf-8') + "\r\n")
                 sheet = Sheet(shared_strings, styles, ziphandle.read("xl/worksheets/sheet%i.xml" %s['id']))
                 sheet.set_dateformat(dateformat)
                 sheet.to_csv(writer)
@@ -125,14 +125,18 @@ class Workbook:
 
     def parse(self, data):
         workbookDoc = minidom.parseString(data)
+        appName = workbookDoc.firstChild.getElementsByTagName("fileVersion")[0]._attrs['appName'].value
+        
         sheets = workbookDoc.firstChild.getElementsByTagName("sheets")[0]
         for sheetNode in sheets.childNodes:
             attrs = sheetNode._attrs
             name = attrs["name"].value
-            if attrs.has_key('sheetId'):
-                id = int(attrs['sheetId'].value)
+            if appName == 'xl':
+                if attrs.has_key('r:id'): id = int(attrs["r:id"].value[3:])
+                else: id = int(attrs['sheetId'].value)
             else:
-                id = int(attrs["r:id"].value[3:])
+                if attrs.has_key('sheetId'): id = int(attrs["sheetId"].value)
+                else: id = int(attrs['r:id'].value[3:])
             self.sheets.append({'name': name, 'id': id})
 
 class Styles:
