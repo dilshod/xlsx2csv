@@ -85,8 +85,9 @@ STANDARD_FORMATS = {
 #   dateformat - override date/time format
 #   delimiter - csv columns delimiter symbol
 #   sheet_delimiter - sheets delimiter used when processing all sheets
+#   skip_empty_lines - skip empty lines
 #
-def xlsx2csv(infilepath, outfile, sheetid=1, dateformat=None, delimiter=",", sheetdelimiter="--------"):
+def xlsx2csv(infilepath, outfile, sheetid=1, dateformat=None, delimiter=",", sheetdelimiter="--------", skip_empty_lines=False):
     writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=delimiter)
     ziphandle = zipfile.ZipFile(infilepath)
     try:
@@ -103,6 +104,7 @@ def xlsx2csv(infilepath, outfile, sheetid=1, dateformat=None, delimiter=",", she
             if not sheet:
                 raise Exception("Sheet %i Not Found" %sheetid)
             sheet.set_dateformat(dateformat)
+            sheet.set_skip_empty_lines(skip_empty_lines)
             sheet.to_csv(writer)
         else:
             for s in workbook.sheets:
@@ -110,6 +112,7 @@ def xlsx2csv(infilepath, outfile, sheetid=1, dateformat=None, delimiter=",", she
                     outfile.write(sheetdelimiter + " " + str(s['id']) + " - " + s['name'].encode('utf-8') + "\r\n")
                 sheet = Sheet(shared_strings, styles, ziphandle.read("xl/worksheets/sheet%i.xml" %s['id']))
                 sheet.set_dateformat(dateformat)
+                sheet.set_skip_empty_lines(skip_empty_lines)
                 sheet.to_csv(writer)
     finally:
         ziphandle.close()
@@ -210,6 +213,7 @@ class Sheet:
     data = None
 
     dateformat = None
+    skip_empty_lines = False
 
     def __init__(self, sharedString, styles, data):
         self.data = data
@@ -218,6 +222,9 @@ class Sheet:
 
     def set_dateformat(self, dateformat):
         self.dateformat = dateformat
+
+    def set_skip_empty_lines(self, skip):
+        self.skip_empty_lines = skip
 
     def to_csv(self, writer):
         self.writer = writer
@@ -312,7 +319,9 @@ class Sheet:
                     l = self.spans[0] + self.spans[1] - 1
                     if len(d) < l:
                         d+= (l - len(d)) * ['']
-                self.writer.writerow(d)
+                # write line to csv
+                if not self.skip_empty_lines or d.count('') != len(d):
+                    self.writer.writerow(d)
             self.in_row = False
         elif self.in_sheet and name == 'sheetData':
             self.in_sheet = False
@@ -327,6 +336,8 @@ if __name__ == "__main__":
       help="sheets delimiter used to separate sheets, pass '' if you don't want delimiters (default '--------')")
     parser.add_option("-f", "--dateformat", dest="dateformat",
       help="override date/time format (ex. %Y/%m/%d)")
+    parser.add_option("-i", "--ignoreempty", dest="skip_empty_lines", default=False, action="store_true",
+      help="skip empty lines")
 
     (options, args) = parser.parse_args()
 
@@ -345,7 +356,8 @@ if __name__ == "__main__":
       'sheetid' : options.sheetid,
       'delimiter' : delimiter,
       'sheetdelimiter' : options.sheetdelimiter,
-      'dateformat' : options.dateformat
+      'dateformat' : options.dateformat,
+      'skip_empty_lines' : options.skip_empty_lines
     }
 
     if len(args) == 1:
