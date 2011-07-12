@@ -2,7 +2,7 @@
 
 __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
 
-import csv, datetime, zipfile, sys
+import csv, datetime, zipfile, sys, os
 import xml.parsers.expat
 from xml.dom import minidom
 from optparse import OptionParser
@@ -124,7 +124,8 @@ def parse(ziphandle, klass, filename):
     return instance
 
 class Workbook:
-    sheets = []
+    def __init__(self):
+        self.sheets = []
 
     def parse(self, data):
         workbookDoc = minidom.parseString(data)
@@ -143,8 +144,9 @@ class Workbook:
             self.sheets.append({'name': name, 'id': id})
 
 class Styles:
-    numFmts = {}
-    cellXfs = []
+    def __init__(self):
+        self.numFmts = {}
+        self.cellXfs = []
 
     def parse(self, data):
         styles = minidom.parseString(data).firstChild
@@ -163,11 +165,12 @@ class Styles:
                 self.cellXfs.append(numFmtId)
 
 class SharedStrings:
-    parser = None
-    strings = []
-    si = False
-    t = False
-    value = ""
+    def __init__(self):
+        self.parser = None
+        self.strings = []
+        self.si = False
+        self.t = False
+        self.value = ""
 
     def parse(self, data):
         self.parser = xml.parsers.expat.ParserCreate()
@@ -195,27 +198,27 @@ class SharedStrings:
             self.t = False
 
 class Sheet:
-    parser = None
-    writer = None
-    sharedString = None
-    styles = None
-
-    in_sheet = False
-    in_row = False
-    in_cell = False
-    in_cell_value = False
-    in_cell_formula = False
-
-    columns = {}
-    rowNum = None
-    colType = None
-    s_attr = None
-    data = None
-
-    dateformat = None
-    skip_empty_lines = False
-
     def __init__(self, sharedString, styles, data):
+        self.parser = None
+        self.writer = None
+        self.sharedString = None
+        self.styles = None
+
+        self.in_sheet = False
+        self.in_row = False
+        self.in_cell = False
+        self.in_cell_value = False
+        self.in_cell_formula = False
+
+        self.columns = {}
+        self.rowNum = None
+        self.colType = None
+        self.s_attr = None
+        self.data = None
+
+        self.dateformat = None
+        self.skip_empty_lines = False
+
         self.data = data
         self.sharedStrings = sharedString.strings
         self.styles = styles
@@ -326,6 +329,23 @@ class Sheet:
         elif self.in_sheet and name == 'sheetData':
             self.in_sheet = False
 
+def convert_recursive(path, kwargs):
+    for name in os.listdir(path):
+        fullpath = os.path.join(path, name)
+        if os.path.isdir(fullpath):
+            convert_recursive(fullpath, kwargs)
+        else:
+            # Find the last . so that we can split the extension from the name
+            if fullpath.lower().endswith(".xlsx"):
+                outfilepath = fullpath[:-4] + 'csv'
+                print("Converting %s to %s" %(fullpath, outfilepath))
+                f = open(fullpath[:-4] + 'csv', 'w+')
+                try:
+                    xlsx2csv(fullpath, f, **kwargs)
+                except zipfile.BadZipfile:
+                    print("File is not a zip file")
+                f.close()
+
 if __name__ == "__main__":
     parser = OptionParser(usage = "%prog [options] infile [outfile]", version="0.11")
     parser.add_option("-s", "--sheet", dest="sheetid", default=1, type="int",
@@ -338,6 +358,8 @@ if __name__ == "__main__":
       help="override date/time format (ex. %Y/%m/%d)")
     parser.add_option("-i", "--ignoreempty", dest="skip_empty_lines", default=False, action="store_true",
       help="skip empty lines")
+    parser.add_option("-r", "--recursive", dest="recursive", default=False, action="store_true",
+      help="convert recursively")
 
     (options, args) = parser.parse_args()
 
@@ -360,11 +382,16 @@ if __name__ == "__main__":
       'skip_empty_lines' : options.skip_empty_lines
     }
 
-    if len(args) == 1:
-        xlsx2csv(args[0], sys.stdout, **kwargs)
-    elif len(args) == 2:
-        f = open(args[1], "w+")
-        xlsx2csv(args[0], f, **kwargs)
-        f.close()
+    if options.recursive:
+        if len(args) == 1:
+            convert_recursive(args[0], kwargs)
+        else:
+            parser.print_help()
     else:
-        parser.print_help()
+        if len(args) < 1: 
+            parser.print_help()
+        else:
+            if len(args) > 1:
+                outfile = open(args[1], 'w+')
+            else: outfile = sys.stdout
+            xlsx2csv(args[0], outfile, **kwargs)
