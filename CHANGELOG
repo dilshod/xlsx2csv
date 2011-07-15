@@ -1,3 +1,6 @@
+version 0.14 (2011-jul-15):
+  * recursively convert the xlsx files in a directory to csv (Zhehao Mao's patch)
+
 version 0.131 (2011-apr-19):
   * skip empty lines option
 

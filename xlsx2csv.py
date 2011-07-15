@@ -335,11 +335,10 @@ def convert_recursive(path, kwargs):
         if os.path.isdir(fullpath):
             convert_recursive(fullpath, kwargs)
         else:
-            # Find the last . so that we can split the extension from the name
             if fullpath.lower().endswith(".xlsx"):
                 outfilepath = fullpath[:-4] + 'csv'
                 print("Converting %s to %s" %(fullpath, outfilepath))
-                f = open(fullpath[:-4] + 'csv', 'w+')
+                f = open(outfilepath, 'w+')
                 try:
                     xlsx2csv(fullpath, f, **kwargs)
                 except zipfile.BadZipfile:
