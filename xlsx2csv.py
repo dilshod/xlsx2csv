@@ -260,15 +260,15 @@ class Sheet:
 
                     if format_type == 'date': # date/time
                         try:
-                            date = datetime.date(1899, 12, 30) + datetime.timedelta(float(data))
+                            date = datetime.datetime(1899, 12, 30) + datetime.timedelta(float(data))
                             if self.dateformat:
                                 # str(dateformat) - python2.5 bug, see: http://bugs.python.org/issue2782
                                 self.data = date.strftime(str(self.dateformat))
                             else:
                                 dateformat = format.replace("yyyy", "%Y").replace("yy", "%y"). \
-                                  replace("hh:mm", "%h:%M").replace("hh", "%h").replace("ss", "%S"). \
+                                  replace("hh:mm", "%H:%M").replace("h", "%H").replace("%H%H", "%H").replace("ss", "%S"). \
                                   replace("d", "%e").replace("%e%e", "%d"). \
-                                  replace("mmmm", "%B").replace("mmm", "%b").replace("mm", "%m"). \
+                                  replace("mmmm", "%B").replace("mmm", "%b").replace("m", "%M").replace("%M%M", "%M"). \
                                   replace("am/pm", "%p")
                                 self.data = date.strftime(str(dateformat)).strip()
                         except (ValueError, OverflowError):

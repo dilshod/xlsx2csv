@@ -1,3 +1,6 @@
+version 0.15 (2011-Sep-16):
+  * datetime format bug fix
+
 version 0.14 (2011-jul-15):
   * recursively convert the xlsx files in a directory to csv (Zhehao Mao's patch)
 
