@@ -99,7 +99,7 @@ def xlsx2csv(infilepath, outfile, sheetid=1, dateformat=None, delimiter=",", she
             sheet = None
             for s in workbook.sheets:
                 if s['id'] == sheetid:
-                    sheet = Sheet(shared_strings, styles, ziphandle.read("xl/worksheets/sheet%i.xml" %s['id']))
+                    sheet = Sheet(workbook, shared_strings, styles, ziphandle.read("xl/worksheets/sheet%i.xml" %s['id']))
                     break
             if not sheet:
                 raise Exception("Sheet %i Not Found" %sheetid)
@@ -110,7 +110,7 @@ def xlsx2csv(infilepath, outfile, sheetid=1, dateformat=None, delimiter=",", she
             for s in workbook.sheets:
                 if sheetdelimiter != "":
                     outfile.write(sheetdelimiter + " " + str(s['id']) + " - " + s['name'].encode('utf-8') + "\r\n")
-                sheet = Sheet(shared_strings, styles, ziphandle.read("xl/worksheets/sheet%i.xml" %s['id']))
+                sheet = Sheet(workbook, shared_strings, styles, ziphandle.read("xl/worksheets/sheet%i.xml" %s['id']))
                 sheet.set_dateformat(dateformat)
                 sheet.set_skip_empty_lines(skip_empty_lines)
                 sheet.to_csv(writer)
@@ -126,16 +126,21 @@ def parse(ziphandle, klass, filename):
 class Workbook:
     def __init__(self):
         self.sheets = []
+        self.date1904 = False
 
     def parse(self, data):
         workbookDoc = minidom.parseString(data)
-        appName = workbookDoc.firstChild.getElementsByTagName("fileVersion")[0]._attrs['appName'].value
-        
+        self.appName = workbookDoc.firstChild.getElementsByTagName("fileVersion")[0]._attrs['appName'].value
+        try:
+            self.date1904 = workbookDoc.firstChild.getElementsByTagName("workbookPr")[0]._attrs['date1904'].value.lower().strip() != "false"
+        except:
+            pass
+
         sheets = workbookDoc.firstChild.getElementsByTagName("sheets")[0]
         for sheetNode in sheets.childNodes:
             attrs = sheetNode._attrs
             name = attrs["name"].value
-            if appName == 'xl':
+            if self.appName == 'xl':
                 if attrs.has_key('r:id'): id = int(attrs["r:id"].value[3:])
                 else: id = int(attrs['sheetId'].value)
             else:
@@ -198,7 +203,7 @@ class SharedStrings:
             self.t = False
 
 class Sheet:
-    def __init__(self, sharedString, styles, data):
+    def __init__(self, workbook, sharedString, styles, data):
         self.parser = None
         self.writer = None
         self.sharedString = None
@@ -220,6 +225,7 @@ class Sheet:
         self.skip_empty_lines = False
 
         self.data = data
+        self.workbook = workbook
         self.sharedStrings = sharedString.strings
         self.styles = styles
 
@@ -260,7 +266,10 @@ class Sheet:
 
                     if format_type == 'date': # date/time
                         try:
-                            date = datetime.datetime(1899, 12, 30) + datetime.timedelta(float(data))
+                            if self.workbook.date1904:
+                                date = datetime.datetime(1904, 01, 01) + datetime.timedelta(float(data))
+                            else:
+                                date = datetime.datetime(1899, 12, 30) + datetime.timedelta(float(data))
                             if self.dateformat:
                                 # str(dateformat) - python2.5 bug, see: http://bugs.python.org/issue2782
                                 self.data = date.strftime(str(self.dateformat))
@@ -268,7 +277,7 @@ class Sheet:
                                 dateformat = format.replace("yyyy", "%Y").replace("yy", "%y"). \
                                   replace("hh:mm", "%H:%M").replace("h", "%H").replace("%H%H", "%H").replace("ss", "%S"). \
                                   replace("d", "%e").replace("%e%e", "%d"). \
-                                  replace("mmmm", "%B").replace("mmm", "%b").replace("m", "%M").replace("%M%M", "%M"). \
+                                  replace("mmmm", "%B").replace("mmm", "%b").replace(":mm", ":%M").replace("m", "%m").replace("%m%m", "%m"). \
                                   replace("am/pm", "%p")
                                 self.data = date.strftime(str(dateformat)).strip()
                         except (ValueError, OverflowError):
