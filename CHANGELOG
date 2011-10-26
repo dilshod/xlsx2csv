@@ -1,3 +1,6 @@
+version 0.16 (2011-Oct-26):
+  * new date format
+
 version 0.15 (2011-Sep-16):
   * datetime 1904 format support
   * datetime format bug fix

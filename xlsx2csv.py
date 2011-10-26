@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
+__license__ = "GPL"
 
 import csv, datetime, zipfile, sys, os
 import xml.parsers.expat
@@ -46,6 +47,7 @@ FORMATS = {
   'dd-mmm-yyyy' : 'date',
   'mm/dd/yy hh:mm am/pm' : 'date',
   'mm/dd/yyyy hh:mm:ss' : 'date',
+  'yyyy-mm-dd hh:mm:ss' : 'date',
 }
 STANDARD_FORMATS = { 
   0 : 'general',
@@ -137,7 +139,7 @@ class Workbook:
             pass
 
         sheets = workbookDoc.firstChild.getElementsByTagName("sheets")[0]
-        for sheetNode in sheets.childNodes:
+        for sheetNode in sheets.getElementsByTagName("sheet"):
             attrs = sheetNode._attrs
             name = attrs["name"].value
             if self.appName == 'xl':

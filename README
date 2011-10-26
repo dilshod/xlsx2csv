@@ -1,4 +1,5 @@
-xlsx2csv convertor
+
+xlsx2csv convertor (http://github.com/dilshod/xlsx2csv)
 
 Converts xslx xml excel files to csv format.
 It is fast, and works for huge xlsx files.
