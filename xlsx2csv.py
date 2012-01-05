@@ -168,6 +168,8 @@ class Styles:
         cellXfsElement = styles.getElementsByTagName("cellXfs")
         if len(cellXfsElement) == 1:
             for cellXfs in cellXfsElement[0].childNodes:
+                if (cellXfs.nodeName != "xf"):
+                    continue
                 numFmtId = int(cellXfs._attrs['numFmtId'].value)
                 self.cellXfs.append(numFmtId)
 
