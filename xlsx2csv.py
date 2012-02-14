@@ -298,7 +298,11 @@ class Sheet:
             self.colType = attrs.get("t")
             self.s_attr = attrs.get("s")
             cellId = attrs.get("r")
-            self.colNum = cellId[:len(cellId)-len(self.rowNum)]
+            if cellId:
+                self.colNum = cellId[:len(cellId)-len(self.rowNum)]
+                self.colIndex = 0
+            else:
+                self.colIndex+= 1
             #self.formula = None
             self.data = ""
             self.in_cell = True
@@ -324,7 +328,7 @@ class Sheet:
         elif self.in_cell and name == 'c':
             t = 0
             for i in self.colNum: t = t*26 + ord(i) - 64
-            self.columns[t - 1] = self.data
+            self.columns[t - 1 + self.colIndex] = self.data
             self.in_cell = False
         if self.in_row and name == 'row':
             if len(self.columns.keys()) > 0:
@@ -405,5 +409,7 @@ if __name__ == "__main__":
         else:
             if len(args) > 1:
                 outfile = open(args[1], 'w+')
-            else: outfile = sys.stdout
-            xlsx2csv(args[0], outfile, **kwargs)
+                xlsx2csv(args[0], outfile, **kwargs)
+                outfile.close()
+            else:
+                xlsx2csv(args[0], sys.stdout, **kwargs)
