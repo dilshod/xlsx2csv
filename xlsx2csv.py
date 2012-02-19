@@ -49,7 +49,7 @@ FORMATS = {
   'mm/dd/yyyy hh:mm:ss' : 'date',
   'yyyy-mm-dd hh:mm:ss' : 'date',
 }
-STANDARD_FORMATS = { 
+STANDARD_FORMATS = {
   0 : 'general',
   1 : '0',
   2 : '0.00',
@@ -195,9 +195,9 @@ class SharedStrings:
     def handleStartElement(self, name, attrs):
         if name == 'si':
             self.si = True
+            self.value = ""
         elif name == 't' and self.si:
             self.t = True
-            self.value = ""
 
     def handleEndElement(self, name):
         if name == 'si':
@@ -404,7 +404,7 @@ if __name__ == "__main__":
         else:
             parser.print_help()
     else:
-        if len(args) < 1: 
+        if len(args) < 1:
             parser.print_help()
         else:
             if len(args) > 1:
