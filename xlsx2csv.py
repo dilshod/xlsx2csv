@@ -133,7 +133,10 @@ class Workbook:
 
     def parse(self, data):
         workbookDoc = minidom.parseString(data)
-        self.appName = workbookDoc.firstChild.getElementsByTagName("fileVersion")[0]._attrs['appName'].value
+        if len(workbookDoc.firstChild.getElementsByTagName("fileVersion")) == 0:
+            self.appName = 'unknown'
+        else:
+            self.appName = workbookDoc.firstChild.getElementsByTagName("fileVersion")[0]._attrs['appName'].value
         try:
             self.date1904 = workbookDoc.firstChild.getElementsByTagName("workbookPr")[0]._attrs['date1904'].value.lower().strip() != "false"
         except:
