@@ -1,5 +1,5 @@
 
-xlsx2csv convertor (http://github.com/dilshod/xlsx2csv)
+xlsx to csv convertor (http://github.com/dilshod/xlsx2csv)
 
 Converts xslx xml excel files to csv format.
 It is fast, and works for huge xlsx files.
@@ -40,4 +40,3 @@ http://poi.apache.org/
 
 All programs in this directory and subdirectories are published under the GNU General Public License.
 Further information about the GNU GPL is available at: http://www.gnu.org/copyleft/gpl.html
-

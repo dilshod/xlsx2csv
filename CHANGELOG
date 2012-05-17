@@ -1,3 +1,9 @@
+version 0.19 (2012-May-17):
+  * issue #12 fix, some kind of unknown excel app version
+
+version 0.18 (2012-Feb-19):
+  * Support for multi-region shared-strings (merge #11)
+
 version 0.17 (2012-Feb-14):
   * issue #10 fix
 
