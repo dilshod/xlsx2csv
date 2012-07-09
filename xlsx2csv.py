@@ -183,6 +183,7 @@ class SharedStrings:
         self.strings = []
         self.si = False
         self.t = False
+        self.rPh = False
         self.value = ""
 
     def parse(self, data):
@@ -200,8 +201,12 @@ class SharedStrings:
         if name == 'si':
             self.si = True
             self.value = ""
+        elif name == 't' and self.rPh:
+            self.t = False
         elif name == 't' and self.si:
             self.t = True
+        elif name == 'rPh':
+            self.rPh = True
 
     def handleEndElement(self, name):
         if name == 'si':
@@ -209,6 +214,8 @@ class SharedStrings:
             self.strings.append(self.value)
         elif name == 't':
             self.t = False
+        elif name == 'rPh':
+            self.rPh = False
 
 class Sheet:
     def __init__(self, workbook, sharedString, styles, data):
