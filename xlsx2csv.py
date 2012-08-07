@@ -366,7 +366,7 @@ def convert_recursive(path, kwargs):
             if fullpath.lower().endswith(".xlsx"):
                 outfilepath = fullpath[:-4] + 'csv'
                 print("Converting %s to %s" %(fullpath, outfilepath))
-                f = open(outfilepath, 'w+')
+                f = open(outfilepath, 'w+b')
                 try:
                     xlsx2csv(fullpath, f, **kwargs)
                 except zipfile.BadZipfile:
@@ -419,7 +419,7 @@ if __name__ == "__main__":
             parser.print_help()
         else:
             if len(args) > 1:
-                outfile = open(args[1], 'w+')
+                outfile = open(args[1], 'w+b')
                 xlsx2csv(args[0], outfile, **kwargs)
                 outfile.close()
             else:
