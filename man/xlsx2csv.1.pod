@@ -1,0 +1,115 @@
+#   Copyright
+#
+#       Copyright (C) 2011-2012 Jari Aalto
+#
+#   License
+#
+#       This program is free software; you can redistribute it and/or modify
+#       it under the terms of the GNU General Public License as published by
+#       the Free Software Foundation; either version 2 of the License, or
+#       (at your option) any later version.
+#
+#       This program is distributed in the hope that it will be useful,
+#       but WITHOUT ANY WARRANTY; without even the implied warranty of
+#       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#       GNU General Public License for more details.
+#
+#       You should have received a copy of the GNU General Public License
+#       along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#   Description
+#
+#       To learn what TOP LEVEL sections to use in manual page,
+#       see POSIX/Susv standard about "Utility Description Defaults" at
+#       http://www.opengroup.org/onlinepubs/009695399/utilities/xcu_chap01.html#tag_01_11
+#
+#       This manual page in Perl POD format. Read more at
+#       http://perldoc.perl.org/perlpod.html or run command:
+#
+#           perldoc perlpod | less
+#
+#       To check the syntax:
+#
+#           podchecker *.pod
+#
+#       To create manual:
+#
+#           pod2man PROGRAM.N.pod > PROGRAM.N
+
+=pod
+
+=head1 NAME
+
+xlsx2csv - Convert xslx xml files to csv format
+
+=head1 SYNOPSIS
+
+  xlsx2csv [options] INFILE [OUTPUT FILE]
+
+=head1 DESCRIPTION
+
+The conversion uses Expat SAX parser for xml processing.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-d DELIMITER, --delimiter=DELIMITER>
+
+Output csv columns delimiter. Use "tab" or "x09" for
+tab. Defaults to comma.
+
+=item B<-f DATEFORMAT, --dateformat=DATEFORMAT>
+
+Set date/time format. See strftime(3) for %-format specifiers. An
+example "%Y-%m-%d".
+
+=item B<-i, --ignoreempty>
+
+Skip empty lines.
+
+=item B<-p DATEFORMAT, --sheetdelimiter=SHEETDELIMITER>
+
+Sheet delimiter used to separate sheets, pass "" if you don't want
+delimiters. DEfaults to "--------".
+
+=item B<-r, --recursive>
+
+Convert recursively.
+
+=item B<-s SHEETID, --sheet=SHEETID>
+
+Sheet to convert (0 for all sheets).
+
+=item B<-h, --help>
+
+Display short help and exit.
+
+=item B<--version>
+
+Display program's version number and exit.
+
+=back
+
+=head1 ENVIRONMENT
+
+None.
+
+=head1 FILES
+
+None.
+
+=head1 SEE ALSO
+
+catdoc(1)
+
+=head1 AUTHORS
+
+Program was written by Dilshod Temirkhodjaev <tdilshod@gmail.com>
+
+This manual page was written by Jari Aalto <jari.aalto@cante.net>. Released
+under license GNU GPL version 2 or (at your option) any later
+version. For more information about the license, visit
+<http://www.gnu.org/copyleft/gpl.html>.
+
+=cut
