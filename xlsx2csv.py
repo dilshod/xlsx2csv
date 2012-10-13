@@ -395,18 +395,18 @@ def convert_recursive(path, kwargs):
 
 if __name__ == "__main__":
     parser = OptionParser(usage = "%prog [options] infile [outfile]", version="0.11")
-    parser.add_option("-s", "--sheet", dest="sheetid", default=1, type="int",
-      help="sheet no to convert (0 for all sheets)")
     parser.add_option("-d", "--delimiter", dest="delimiter", default=",",
       help="delimiter - csv columns delimiter, 'tab' or 'x09' for tab (comma is default)")
-    parser.add_option("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
-      help="sheets delimiter used to separate sheets, pass '' if you don't want delimiters (default '--------')")
     parser.add_option("-f", "--dateformat", dest="dateformat",
       help="override date/time format (ex. %Y/%m/%d)")
     parser.add_option("-i", "--ignoreempty", dest="skip_empty_lines", default=False, action="store_true",
       help="skip empty lines")
+    parser.add_option("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
+      help="sheets delimiter used to separate sheets, pass '' if you don't want delimiters (default '--------')")
     parser.add_option("-r", "--recursive", dest="recursive", default=False, action="store_true",
       help="convert recursively")
+    parser.add_option("-s", "--sheet", dest="sheetid", default=1, type="int",
+      help="sheet no to convert (0 for all sheets)")
 
     (options, args) = parser.parse_args()
 
