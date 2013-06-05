@@ -22,10 +22,16 @@
 __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
 __license__ = "GPL-2+"
 
-import csv, datetime, zipfile, sys, os
+import csv, datetime, zipfile, sys, os, re
 import xml.parsers.expat
 from xml.dom import minidom
 from optparse import OptionParser
+
+EOL = "\n"
+
+# example: ProgramData=C:\ProgramData
+if os.environ.get("ProgramData",None):
+    EOL = "\r\n"
 
 # see also ruby-roo lib at: http://github.com/hmcgowan/roo
 FORMATS = {
@@ -132,7 +138,7 @@ def xlsx2csv(infilepath, outfile, sheetid=1, dateformat=None, delimiter=",", she
         else:
             for s in workbook.sheets:
                 if sheetdelimiter != "":
-                    outfile.write(sheetdelimiter + " " + str(s['id']) + " - " + s['name'].encode('utf-8') + "\r\n")
+                    outfile.write(sheetdelimiter + " " + str(s['id']) + " - " + s['name'].encode('utf-8') + EOL)
                 sheet = Sheet(workbook, shared_strings, styles, ziphandle.read("xl/worksheets/sheet%i.xml" %s['id']))
                 sheet.set_dateformat(dateformat)
                 sheet.set_skip_empty_lines(skip_empty_lines)
