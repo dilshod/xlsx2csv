@@ -290,7 +290,8 @@ class Sheet:
 
     def handleCharData(self, data):
         if self.in_cell_value:
-            self.data = data # default value
+            self.collected_string+= data
+            self.data = self.collected_string
             if self.colType == "s": # shared string
                 self.data = self.sharedStrings[int(data)]
             elif self.colType == "b": # boolean
@@ -351,6 +352,7 @@ class Sheet:
             self.in_cell = True
         elif self.in_cell and (name == 'v' or name == 'is'):
             self.in_cell_value = True
+            self.collected_string = ""
         #elif self.in_cell and name == 'f':
         #    self.in_cell_formula = True
         elif self.in_sheet and name == 'row' and attrs.has_key('r'):
