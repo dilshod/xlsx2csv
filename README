@@ -38,5 +38,6 @@ Java:
 http://poi.apache.org/
 
 
-All programs in this directory and subdirectories are published under the GNU General Public License.
-Further information about the GNU GPL is available at: http://www.gnu.org/copyleft/gpl.html
+All programs in this directory and subdirectories are published under
+license GNU GPL version 2 or (at your option) any later version. For
+more information, see COPYING or visit <http://www.gnu.org/copyleft/gpl.html>.

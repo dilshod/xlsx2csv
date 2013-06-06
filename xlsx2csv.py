@@ -1,12 +1,37 @@
 #!/usr/bin/env python
+#
+#   Copyright information
+#
+#	Copyright (C) 2010-2012 Dilshod Temirkhodjaev <tdilshod@gmail.com>
+#
+#   License
+#
+#	This program is free software; you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation; either version 2 of the License, or
+#	(at your option) any later version.
+#
+#	This program is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
-__license__ = "GPL"
+__license__ = "GPL-2+"
 
-import csv, datetime, zipfile, sys, os
+import csv, datetime, zipfile, sys, os, re
 import xml.parsers.expat
 from xml.dom import minidom
 from optparse import OptionParser
+
+EOL = "\n"
+
+# example: ProgramData=C:\ProgramData
+if os.environ.get("ProgramData",None):
+    EOL = "\r\n"
 
 # see also ruby-roo lib at: http://github.com/hmcgowan/roo
 FORMATS = {
@@ -113,7 +138,7 @@ def xlsx2csv(infilepath, outfile, sheetid=1, dateformat=None, delimiter=",", she
         else:
             for s in workbook.sheets:
                 if sheetdelimiter != "":
-                    outfile.write(sheetdelimiter + " " + str(s['id']) + " - " + s['name'].encode('utf-8') + "\r\n")
+                    outfile.write(sheetdelimiter + " " + str(s['id']) + " - " + s['name'].encode('utf-8') + EOL)
                 sheet = Sheet(workbook, shared_strings, styles, ziphandle.read("xl/worksheets/sheet%i.xml" %s['id']))
                 sheet.set_dateformat(dateformat)
                 sheet.set_skip_empty_lines(skip_empty_lines)
@@ -378,18 +403,18 @@ def convert_recursive(path, kwargs):
 
 if __name__ == "__main__":
     parser = OptionParser(usage = "%prog [options] infile [outfile]", version="0.11")
-    parser.add_option("-s", "--sheet", dest="sheetid", default=1, type="int",
-      help="sheet no to convert (0 for all sheets)")
     parser.add_option("-d", "--delimiter", dest="delimiter", default=",",
       help="delimiter - csv columns delimiter, 'tab' or 'x09' for tab (comma is default)")
-    parser.add_option("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
-      help="sheets delimiter used to separate sheets, pass '' if you don't want delimiters (default '--------')")
     parser.add_option("-f", "--dateformat", dest="dateformat",
       help="override date/time format (ex. %Y/%m/%d)")
     parser.add_option("-i", "--ignoreempty", dest="skip_empty_lines", default=False, action="store_true",
       help="skip empty lines")
+    parser.add_option("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
+      help="sheets delimiter used to separate sheets, pass '' if you don't want delimiters (default '--------')")
     parser.add_option("-r", "--recursive", dest="recursive", default=False, action="store_true",
       help="convert recursively")
+    parser.add_option("-s", "--sheet", dest="sheetid", default=1, type="int",
+      help="sheet no to convert (0 for all sheets)")
 
     (options, args) = parser.parse_args()
 
