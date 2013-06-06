@@ -118,7 +118,11 @@ STANDARD_FORMATS = {
 #
 def xlsx2csv(infilepath, outfile, sheetid=1, dateformat=None, delimiter=",", sheetdelimiter="--------", skip_empty_lines=False):
     writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=delimiter)
-    ziphandle = zipfile.ZipFile(infilepath)
+    try:
+      ziphandle = zipfile.ZipFile(infilepath)
+    except zipfile.BadZipfile:
+      sys.stderr.write("Invalid xlsx file: " + infilepath + os.linesep)
+      return
     try:
         shared_strings = parse(ziphandle, SharedStrings, "xl/sharedStrings.xml")
         styles = parse(ziphandle, Styles, "xl/styles.xml")
@@ -128,7 +132,9 @@ def xlsx2csv(infilepath, outfile, sheetid=1, dateformat=None, delimiter=",", she
             sheet = None
             for s in workbook.sheets:
                 if s['id'] == sheetid:
-                    sheet = Sheet(workbook, shared_strings, styles, ziphandle.read("xl/worksheets/sheet%i.xml" %s['id']))
+                    sheetfile = ziphandle.open("xl/worksheets/sheet%i.xml" %s['id'], "r")
+                    sheet = Sheet(workbook, shared_strings, styles, sheetfile)
+                    sheetfile.close()
                     break
             if not sheet:
                 raise Exception("Sheet %i Not Found" %sheetid)
@@ -139,17 +145,21 @@ def xlsx2csv(infilepath, outfile, sheetid=1, dateformat=None, delimiter=",", she
             for s in workbook.sheets:
                 if sheetdelimiter != "":
                     outfile.write(sheetdelimiter + " " + str(s['id']) + " - " + s['name'].encode('utf-8') + EOL)
-                sheet = Sheet(workbook, shared_strings, styles, ziphandle.read("xl/worksheets/sheet%i.xml" %s['id']))
+                sheetfile = ziphandle.open("xl/worksheets/sheet%i.xml" %s['id'], "r")
+                sheet = Sheet(workbook, shared_strings, styles, sheetfile)
                 sheet.set_dateformat(dateformat)
                 sheet.set_skip_empty_lines(skip_empty_lines)
                 sheet.to_csv(writer)
+                sheetfile.close()
     finally:
         ziphandle.close()
 
 def parse(ziphandle, klass, filename):
     instance = klass()
     if filename in ziphandle.namelist():
-        instance.parse(ziphandle.read(filename))
+        f = ziphandle.open(filename, "r")
+        instance.parse(f)
+        f.close()
     return instance
 
 class Workbook:
@@ -157,8 +167,8 @@ class Workbook:
         self.sheets = []
         self.date1904 = False
 
-    def parse(self, data):
-        workbookDoc = minidom.parseString(data)
+    def parse(self, filehandle):
+        workbookDoc = minidom.parseString(filehandle.read())
         if len(workbookDoc.firstChild.getElementsByTagName("fileVersion")) == 0:
             self.appName = 'unknown'
         else:
@@ -185,8 +195,8 @@ class Styles:
         self.numFmts = {}
         self.cellXfs = []
 
-    def parse(self, data):
-        styles = minidom.parseString(data).firstChild
+    def parse(self, filehandle):
+        styles = minidom.parseString(filehandle.read()).firstChild
         # numFmts
         numFmtsElement = styles.getElementsByTagName("numFmts")
         if len(numFmtsElement) == 1:
@@ -212,12 +222,12 @@ class SharedStrings:
         self.rPh = False
         self.value = ""
 
-    def parse(self, data):
+    def parse(self, filehandle):
         self.parser = xml.parsers.expat.ParserCreate()
         self.parser.CharacterDataHandler = self.handleCharData
         self.parser.StartElementHandler = self.handleStartElement
         self.parser.EndElementHandler = self.handleEndElement
-        self.parser.Parse(data)
+        self.parser.ParseFile(filehandle)
 
     def handleCharData(self, data):
         if self.t:
@@ -244,7 +254,7 @@ class SharedStrings:
             self.rPh = False
 
 class Sheet:
-    def __init__(self, workbook, sharedString, styles, data):
+    def __init__(self, workbook, sharedString, styles, filehandle):
         self.parser = None
         self.writer = None
         self.sharedString = None
@@ -265,7 +275,7 @@ class Sheet:
         self.dateformat = None
         self.skip_empty_lines = False
 
-        self.data = data
+        self.filehandle = filehandle
         self.workbook = workbook
         self.sharedStrings = sharedString.strings
         self.styles = styles
@@ -282,7 +292,7 @@ class Sheet:
         self.parser.CharacterDataHandler = self.handleCharData
         self.parser.StartElementHandler = self.handleStartElement
         self.parser.EndElementHandler = self.handleEndElement
-        self.parser.Parse(self.data)
+        self.parser.ParseFile(self.filehandle)
 
     def handleCharData(self, data):
         if self.in_cell_value:
