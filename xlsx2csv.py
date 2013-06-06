@@ -27,12 +27,6 @@ import xml.parsers.expat
 from xml.dom import minidom
 from optparse import OptionParser
 
-EOL = "\n"
-
-# example: ProgramData=C:\ProgramData
-if os.environ.get("ProgramData",None):
-    EOL = "\r\n"
-
 # see also ruby-roo lib at: http://github.com/hmcgowan/roo
 FORMATS = {
   'general' : 'float',
@@ -117,7 +111,7 @@ STANDARD_FORMATS = {
 #   skip_empty_lines - skip empty lines
 #
 def xlsx2csv(infilepath, outfile, sheetid=1, dateformat=None, delimiter=",", sheetdelimiter="--------", skip_empty_lines=False):
-    writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=delimiter)
+    writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=delimiter, lineterminator=os.linesep)
     try:
       ziphandle = zipfile.ZipFile(infilepath)
     except zipfile.BadZipfile:
@@ -144,7 +138,7 @@ def xlsx2csv(infilepath, outfile, sheetid=1, dateformat=None, delimiter=",", she
         else:
             for s in workbook.sheets:
                 if sheetdelimiter != "":
-                    outfile.write(sheetdelimiter + " " + str(s['id']) + " - " + s['name'].encode('utf-8') + EOL)
+                    outfile.write(sheetdelimiter + " " + str(s['id']) + " - " + s['name'].encode('utf-8') + os.linesep)
                 sheetfile = ziphandle.open("xl/worksheets/sheet%i.xml" %s['id'], "r")
                 sheet = Sheet(workbook, shared_strings, styles, sheetfile)
                 sheet.set_dateformat(dateformat)
@@ -355,7 +349,7 @@ class Sheet:
             #self.formula = None
             self.data = ""
             self.in_cell = True
-        elif self.in_cell and name == 'v':
+        elif self.in_cell and (name == 'v' or name == 'is'):
             self.in_cell_value = True
         #elif self.in_cell and name == 'f':
         #    self.in_cell_formula = True
