@@ -301,6 +301,8 @@ class Sheet:
                             self.data = data
                     elif format_type == 'time': # time
                         self.data = str(float(data) * 24*60*60)
+                    elif format_type == 'float' and ('E' in data or 'e' in data):
+                        self.data = ("%f" %(float(data))).rstrip('0').rstrip('.')
         # does not support it
         #elif self.in_cell_formula:
         #    self.formula = data
