@@ -128,13 +128,13 @@ def xlsx2csv(infilepath, outfile, sheetid=1, dateformat=None, delimiter=",", she
                 if s['id'] == sheetid:
                     sheetfile = ziphandle.open("xl/worksheets/sheet%i.xml" %s['id'], "r")
                     sheet = Sheet(workbook, shared_strings, styles, sheetfile)
-                    sheetfile.close()
                     break
             if not sheet:
                 raise Exception("Sheet %i Not Found" %sheetid)
             sheet.set_dateformat(dateformat)
             sheet.set_skip_empty_lines(skip_empty_lines)
             sheet.to_csv(writer)
+            sheetfile.close()
         else:
             for s in workbook.sheets:
                 if sheetdelimiter != "":
