@@ -313,9 +313,9 @@ class Sheet:
                     if format_type == 'date': # date/time
                         try:
                             if self.workbook.date1904:
-                                date = datetime.datetime(1904, 01, 01) + datetime.timedelta(float(data))
+                                date = datetime.datetime(1904, 01, 01) + datetime.timedelta(float(self.data))
                             else:
-                                date = datetime.datetime(1899, 12, 30) + datetime.timedelta(float(data))
+                                date = datetime.datetime(1899, 12, 30) + datetime.timedelta(float(self.data))
                             if self.dateformat:
                                 # str(dateformat) - python2.5 bug, see: http://bugs.python.org/issue2782
                                 self.data = date.strftime(str(self.dateformat))
@@ -330,9 +330,9 @@ class Sheet:
                             # invalid date format
                             self.data = data
                     elif format_type == 'time': # time
-                        self.data = str(float(data) * 24*60*60)
-                    elif format_type == 'float' and ('E' in data or 'e' in data):
-                        self.data = ("%f" %(float(data))).rstrip('0').rstrip('.')
+                        self.data = str(float(self.data) * 24*60*60)
+                    elif format_type == 'float' and ('E' in self.data or 'e' in self.data):
+                        self.data = ("%f" %(float(self.data))).rstrip('0').rstrip('.')
         # does not support it
         #elif self.in_cell_formula:
         #    self.formula = data
