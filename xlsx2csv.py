@@ -293,7 +293,7 @@ class Sheet:
             self.collected_string+= data
             self.data = self.collected_string
             if self.colType == "s": # shared string
-                self.data = self.sharedStrings[int(data)]
+                self.data = self.sharedStrings[int(self.data)]
             elif self.colType == "b": # boolean
                 self.data = (int(data) == 1 and "TRUE") or (int(data) == 0 and "FALSE") or data
             elif self.s_attr:
