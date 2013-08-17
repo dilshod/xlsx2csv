@@ -293,7 +293,7 @@ class Sheet:
             self.collected_string+= data
             self.data = self.collected_string
             if self.colType == "s": # shared string
-                self.data = self.sharedStrings[int(data)]
+                self.data = self.sharedStrings[int(self.data)]
             elif self.colType == "b": # boolean
                 self.data = (int(data) == 1 and "TRUE") or (int(data) == 0 and "FALSE") or data
             elif self.s_attr:
@@ -309,9 +309,8 @@ class Sheet:
                 # get format type
                 if format and FORMATS.has_key(format):
                     format_type = FORMATS[format]
-
-                    if format_type == 'date': # date/time
-                        try:
+                    try:
+                        if format_type == 'date': # date/time
                             if self.workbook.date1904:
                                 date = datetime.datetime(1904, 01, 01) + datetime.timedelta(float(self.data))
                             else:
@@ -326,13 +325,13 @@ class Sheet:
                                   replace("mmmm", "%B").replace("mmm", "%b").replace(":mm", ":%M").replace("m", "%m").replace("%m%m", "%m"). \
                                   replace("am/pm", "%p")
                                 self.data = date.strftime(str(dateformat)).strip()
-                        except (ValueError, OverflowError):
-                            # invalid date format
-                            self.data = data
-                    elif format_type == 'time': # time
-                        self.data = str(float(self.data) * 24*60*60)
-                    elif format_type == 'float' and ('E' in self.data or 'e' in self.data):
-                        self.data = ("%f" %(float(self.data))).rstrip('0').rstrip('.')
+                        elif format_type == 'time': # time
+                            self.data = str(float(self.data) * 24*60*60)
+                        elif format_type == 'float' and ('E' in self.data or 'e' in self.data):
+                            self.data = ("%f" %(float(self.data))).rstrip('0').rstrip('.')
+                    except (ValueError, OverflowError):
+                        # invalid date format
+                        pass
         # does not support it
         #elif self.in_cell_formula:
         #    self.formula = data
