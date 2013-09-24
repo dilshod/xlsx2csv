@@ -110,8 +110,7 @@ STANDARD_FORMATS = {
 #   sheet_delimiter - sheets delimiter used when processing all sheets
 #   skip_empty_lines - skip empty lines
 #
-def xlsx2csv(infilepath, outfile, sheetid=1, dateformat=None, delimiter=",", sheetdelimiter="--------", skip_empty_lines=False):
-    writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=delimiter, lineterminator=os.linesep)
+def xlsx2csv(infilepath, outfile, outfilename, sheetid=1, dateformat=None, delimiter=",", sheetdelimiter="--------", skip_empty_lines=False):
     try:
       ziphandle = zipfile.ZipFile(infilepath)
     except zipfile.BadZipfile:
@@ -123,28 +122,41 @@ def xlsx2csv(infilepath, outfile, sheetid=1, dateformat=None, delimiter=",", she
         workbook = parse(ziphandle, Workbook, "xl/workbook.xml")
 
         if sheetid > 0:
-            sheet = None
-            for s in workbook.sheets:
-                if s['id'] == sheetid:
-                    sheetfile = ziphandle.open("xl/worksheets/sheet%i.xml" %s['id'], "r")
-                    sheet = Sheet(workbook, shared_strings, styles, sheetfile)
-                    break
-            if not sheet:
-                raise Exception("Sheet %i Not Found" %sheetid)
-            sheet.set_dateformat(dateformat)
-            sheet.set_skip_empty_lines(skip_empty_lines)
-            sheet.to_csv(writer)
-            sheetfile.close()
-        else:
-            for s in workbook.sheets:
-                if sheetdelimiter != "":
-                    outfile.write(sheetdelimiter + " " + str(s['id']) + " - " + s['name'].encode('utf-8') + os.linesep)
-                sheetfile = ziphandle.open("xl/worksheets/sheet%i.xml" %s['id'], "r")
-                sheet = Sheet(workbook, shared_strings, styles, sheetfile)
+            outfile = outfilename and open(outfilename, 'w+b') or outfile
+            try:
+                writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=delimiter, lineterminator=os.linesep)
+                sheet = None
+                for s in workbook.sheets:
+                    if s['id'] == sheetid:
+                        sheetfile = ziphandle.open("xl/worksheets/sheet%i.xml" %s['id'], "r")
+                        sheet = Sheet(workbook, shared_strings, styles, sheetfile)
+                        break
+                if not sheet:
+                    raise Exception("Sheet %i Not Found" %sheetid)
                 sheet.set_dateformat(dateformat)
                 sheet.set_skip_empty_lines(skip_empty_lines)
                 sheet.to_csv(writer)
                 sheetfile.close()
+            finally:
+                if outfilename:
+                    outfile.close()
+        else:
+            for s in workbook.sheets:
+                sheetname = s['name'].encode('utf-8')
+                outfile = outfilename and open(outfilename + '/' + sheetname + '.csv', 'w+b') or outfile
+                try:
+                    writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=delimiter, lineterminator=os.linesep)
+                    if not outfilename and sheetdelimiter != "":
+                        outfile.write(sheetdelimiter + " " + str(s['id']) + " - " + s['name'].encode('utf-8') + os.linesep)
+                    sheetfile = ziphandle.open("xl/worksheets/sheet%i.xml" %s['id'], "r")
+                    sheet = Sheet(workbook, shared_strings, styles, sheetfile)
+                    sheet.set_dateformat(dateformat)
+                    sheet.set_skip_empty_lines(skip_empty_lines)
+                    sheet.to_csv(writer)
+                    sheetfile.close()
+                finally:
+                    if outfilename:
+                        outfile.close()
     finally:
         ziphandle.close()
 
@@ -399,12 +411,10 @@ def convert_recursive(path, kwargs):
             if fullpath.lower().endswith(".xlsx"):
                 outfilepath = fullpath[:-4] + 'csv'
                 print("Converting %s to %s" %(fullpath, outfilepath))
-                f = open(outfilepath, 'w+b')
                 try:
-                    xlsx2csv(fullpath, f, **kwargs)
+                    xlsx2csv(fullpath, None, outfilepath, **kwargs)
                 except zipfile.BadZipfile:
                     print("File is not a zip file")
-                f.close()
 
 if __name__ == "__main__":
     parser = OptionParser(usage = "%prog [options] infile [outfile]", version="0.11")
@@ -452,8 +462,6 @@ if __name__ == "__main__":
             parser.print_help()
         else:
             if len(args) > 1:
-                outfile = open(args[1], 'w+b')
-                xlsx2csv(args[0], outfile, **kwargs)
-                outfile.close()
+                xlsx2csv(args[0], None, args[1], **kwargs)
             else:
-                xlsx2csv(args[0], sys.stdout, **kwargs)
+                xlsx2csv(args[0], sys.stdout, None, **kwargs)
