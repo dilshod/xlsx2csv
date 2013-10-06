@@ -22,7 +22,7 @@
 __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
 __license__ = "GPL-2+"
 
-import csv, datetime, zipfile, sys, os, re
+import csv, datetime, zipfile, string, sys, os, re
 import xml.parsers.expat
 from xml.dom import minidom
 from optparse import OptionParser
@@ -141,9 +141,17 @@ def xlsx2csv(infilepath, outfile, outfilename, sheetid=1, dateformat=None, delim
                 if outfilename:
                     outfile.close()
         else:
+            if outfilename:
+                if not os.path.exists(outfilename):
+                    os.makedirs(outfilename)
+                elif os.path.isfile(outfilename):
+                    sys.stderr.write("File " + outfilename + " already exists!" + os.linesep)
+                    sys.exit(1)
+            #sheetnames = []
             for s in workbook.sheets:
                 sheetname = s['name'].encode('utf-8')
-                outfile = outfilename and open(outfilename + '/' + sheetname + '.csv', 'w+b') or outfile
+                #sheetnames.append(sheetname + '.csv')
+                outfile = outfilename and open(os.path.join(outfilename, sheetname + '.csv'), 'w+b') or outfile
                 try:
                     writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=delimiter, lineterminator=os.linesep)
                     if not outfilename and sheetdelimiter != "":
@@ -157,6 +165,10 @@ def xlsx2csv(infilepath, outfile, outfilename, sheetid=1, dateformat=None, delim
                 finally:
                     if outfilename:
                         outfile.close()
+            #if outfilename:
+            #    f = open(os.path.join(outfilename, "sheets.txt"), "w+b")
+            #    f.write(string.join(sheetnames, "\n"))
+            #    f.close()
     finally:
         ziphandle.close()
 
