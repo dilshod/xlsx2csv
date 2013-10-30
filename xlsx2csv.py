@@ -174,7 +174,9 @@ def xlsx2csv(infilepath, outfile, outfilename, sheetid=1, dateformat=None, delim
 
 def parse(ziphandle, klass, filename):
     instance = klass()
-    if filename in ziphandle.namelist():
+    if not filename in ziphandle.namelist():
+        filename = filter(lambda f: f.lower() == filename.lower(), ziphandle.namelist())[0]
+    if filename:
         f = ziphandle.open(filename, "r")
         instance.parse(f)
         f.close()
@@ -219,17 +221,21 @@ class Styles:
         numFmtsElement = styles.getElementsByTagName("numFmts")
         if len(numFmtsElement) == 1:
             for numFmt in numFmtsElement[0].childNodes:
-                numFmtId = int(numFmt._attrs['numFmtId'].value)
-                formatCode = numFmt._attrs['formatCode'].value.lower().replace('\\', '')
-                self.numFmts[numFmtId] = formatCode
+                if numFmt.nodeType == minidom.Node.ELEMENT_NODE:
+                    numFmtId = int(numFmt._attrs['numFmtId'].value)
+                    formatCode = numFmt._attrs['formatCode'].value.lower().replace('\\', '')
+                    self.numFmts[numFmtId] = formatCode
         # cellXfs
         cellXfsElement = styles.getElementsByTagName("cellXfs")
         if len(cellXfsElement) == 1:
             for cellXfs in cellXfsElement[0].childNodes:
-                if (cellXfs.nodeName != "xf"):
+                if cellXfs.nodeType != minidom.Node.ELEMENT_NODE or cellXfs.nodeName != "xf":
                     continue
-                numFmtId = int(cellXfs._attrs['numFmtId'].value)
-                self.cellXfs.append(numFmtId)
+                if cellXfs._attrs.has_key('numFmtId'):
+                    numFmtId = int(cellXfs._attrs['numFmtId'].value)
+                    self.cellXfs.append(numFmtId)
+                else:
+                    self.cellXfs.append(None)
 
 class SharedStrings:
     def __init__(self):

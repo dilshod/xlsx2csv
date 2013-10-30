@@ -1,3 +1,7 @@
+version 
+  * seperate csv files for each sheet (#37)
+  * #38 issue fix
+
 version 0.5 (2013-Jun-6):
   * Select EOL terminator according to OS (#32)
   * floating errors (#28)
