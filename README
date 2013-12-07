@@ -1,22 +1,28 @@
 
-xlsx to csv convertor (http://github.com/dilshod/xlsx2csv)
+xlsx to csv converter (http://github.com/dilshod/xlsx2csv)
 
-Converts xslx xml excel files to csv format.
-It is fast, and works for huge xlsx files.
+Converts xslx files to csv format.
+Handles large XLSX files. Fast and easy to use.
 
-Usage: xlsx2csv.py [options] infile [outfile]
+Installation:
+  sudo easy_install xlsx2csv
+  or
+  pip install xlsx2csv
+
+Usage:
+  xlsx2csv [options] infile [outfile]
 
 Options:
   --version             show program's version number and exit
   -h, --help            show this help message and exit
   -s SHEETID, --sheet=SHEETID
-                        sheet no to convert (0 for all sheets)
+                        sheet number to convert
   -d DELIMITER, --delimiter=DELIMITER
-                        delimiter - csv columns delimiter, 'tab' or 'x09' for
-                        tab (comma is default)
+                        delimiter - columns delimiter in csv, 'tab' or 'x09' for
+                        a tab (default: comma ',')
   -p SHEETDELIMITER, --sheetdelimiter=SHEETDELIMITER
-                        sheets delimiter used to separate sheets, pass '' if
-                        you don't want delimiters (default '--------')
+                        sheet delimiter used to separate sheets, pass '' if
+                        you do not need delimiter (default: '--------')
   -f DATEFORMAT, --dateformat=DATEFORMAT
                         override date/time format (ex. %Y/%m/%d)
 

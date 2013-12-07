@@ -483,7 +483,7 @@ def convert_recursive(path, sheetid, kwargs):
 
 if __name__ == "__main__":
     if "ArgumentParser" in globals():
-        parser = ArgumentParser(description = "xlsx to csv convertor")
+        parser = ArgumentParser(description = "xlsx to csv converter")
         parser.add_argument('infile', metavar='xlsxfile', help="xlsx file path")
         parser.add_argument('outfile', metavar='outfile', nargs='?', help="output csv file path")
         parser.add_argument('-v', '--version', action='version', version='%(prog)s')
@@ -496,7 +496,7 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--all", dest="all", default=False, action="store_true",
       help="export all sheets")
     parser.add_argument("-d", "--delimiter", dest="delimiter", default=",",
-      help="delimiter - csv columns delimiter, 'tab' or 'x09' for tab (comma is default)")
+      help="delimiter - columns delimiter in csv, 'tab' or 'x09' for a tab (default: comma ',')")
     parser.add_argument("-f", "--dateformat", dest="dateformat",
       help="override date/time format (ex. %%Y/%%m/%%d)")
     parser.add_argument("-i", "--ignoreempty", dest="skip_empty_lines", default=False, action="store_true",
@@ -504,9 +504,9 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--escape", dest='escape_strings', default=False, action="store_true",
       help="Escape \\r\\n\\t characters")
     parser.add_argument("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
-      help="sheets delimiter used to separate sheets, pass '' if you don't want delimiters (default '--------')")
+      help="sheet delimiter used to separate sheets, pass '' if you do not need delimiter (default: '--------')")
     parser.add_argument("-s", "--sheet", dest="sheetid", default=1, type=int,
-      help="sheet no to convert")
+      help="sheet number to convert")
 
     if argparser:
         options = parser.parse_args()
