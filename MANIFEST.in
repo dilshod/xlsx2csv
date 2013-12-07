@@ -1,0 +1,5 @@
+include test/*
+include man/*
+include README
+include LICENSE.txt
+include COPYING

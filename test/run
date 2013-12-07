@@ -1,0 +1,33 @@
+#!/usr/bin/env python
+
+PYTHON_VERSIONS = ["2.4", "2.7", "3.3"]
+
+import os
+from subprocess import call
+
+def compare(case, arguments=""):
+    for pyver in PYTHON_VERSIONS:
+        f = os.popen("python%s ./xlsx2csv.py %s test/%s.xlsx" %(pyver, arguments, case))
+        left = f.read()
+        f.close()
+
+        f = open("test/%s.csv" %case)
+        right = f.read().replace("\r", "")
+        f.close()
+
+        if left != right:
+            print "FAILED: %s %s" %(case, pyver)
+            print " actual:", left
+            print " expected:", right
+        else:
+            print "OK: %s %s" %(case, pyver)
+
+compare("datetime", "-f \"%Y-%m-%d %H:%M:%S\"")
+compare("empty_row")
+compare("junk-small")
+compare("last-column-empty")
+compare("sheets", "-a")
+compare("skip_empty_lines", "-i")
+compare("twolettercolumns")
+compare("xlsx2csv-test-file")
+compare("escape", "-e")

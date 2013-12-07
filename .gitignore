@@ -6,6 +6,8 @@
 # Packages
 *.egg
 *.egg-info
+MANIFEST
+scripts
 dist
 build
 eggs

@@ -1,3 +1,10 @@
+version 0.6 (2013-Dec-7):
+  * python 2.4 support
+  * python 3.3 support
+  * setuptools
+  * escape \t\r\n characters option
+  * bug fixes
+
 version 
   * seperate csv files for each sheet (#37)
   * #38 issue fix
