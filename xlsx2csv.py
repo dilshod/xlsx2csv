@@ -174,10 +174,9 @@ def xlsx2csv(infilepath, outfile, outfilename, sheetid=1, dateformat=None, delim
 
 def parse(ziphandle, klass, filename):
     instance = klass()
-    if not filename in ziphandle.namelist():
-        filename = filter(lambda f: f.lower() == filename.lower(), ziphandle.namelist())
-    if len(filename):
-        f = ziphandle.open(filename, "r")
+    namelist = filter(lambda f: f.lower() == filename.lower(), ziphandle.namelist())
+    if len(namelist):
+        f = ziphandle.open(namelist[0], "r")
         instance.parse(f)
         f.close()
     return instance
