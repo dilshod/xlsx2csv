@@ -7,7 +7,11 @@ from subprocess import call
 
 def compare(case, arguments=""):
     for pyver in PYTHON_VERSIONS:
-        f = os.popen("python%s ./xlsx2csv.py %s test/%s.xlsx" %(pyver, arguments, case))
+        ext = "xlsx"
+        if os.path.exists("test/%s.xlsm" % case):
+            ext = "xlsm"
+        #print "python%s ./xlsx2csv.py %s test/%s.%s" %(pyver, arguments, case, ext)
+        f = os.popen("python%s ./xlsx2csv.py %s test/%s.%s" %(pyver, arguments, case, ext))
         left = f.read()
         f.close()
 
@@ -31,3 +35,4 @@ compare("skip_empty_lines", "-i")
 compare("twolettercolumns")
 compare("xlsx2csv-test-file")
 compare("escape", "-e")
+compare("hyperlinks", "--hyperlinks")

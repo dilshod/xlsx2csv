@@ -126,34 +126,39 @@ class OutFileAlreadyExistsException(XlsxException):
 class Xlsx2csv:
     """
      Usage: Xlsx2csv("test.xslx", **params).convert("test.csv", sheetid=1)
-     parameters:
+     options:
        sheetid - sheet no to convert (0 for all sheets)
        dateformat - override date/time format
        delimiter - csv columns delimiter symbol
-       sheet_delimiter - sheets delimiter used when processing all sheets
+       sheetdelimiter - sheets delimiter used when processing all sheets
        skip_empty_lines - skip empty lines
+       hyperlinks - include hyperlinks
     """
 
-    def __init__(self, xlsxfile, dateformat=None, delimiter=",", sheetdelimiter="--------", skip_empty_lines=False, escape_strings=False, cmd=False):
+    def __init__(self, xlsxfile, **options):
+        # dateformat=None, delimiter=",", sheetdelimiter="--------", skip_empty_lines=False, escape_strings=False, cmd=False
+        options.setdefault("delimeter", ",")
+        options.setdefault("sheetdelimiter", "--------")
+        options.setdefault("skip_empty_lines", False)
+        options.setdefault("escape_strings", False)
+        options.setdefault("cmd", False)
+
+        self.options = options
         try:
             self.ziphandle = zipfile.ZipFile(xlsxfile)
         except (zipfile.BadZipfile, IOError):
-            if cmd:
+            if self.options['cmd']:
                 sys.stderr.write("Invalid xlsx file: " + xlsxfile + os.linesep)
                 sys.exit(1)
             raise InvalidXlsxFileException("Invalid xlsx file: " + xlsxfile)
 
-        self.dateformat = dateformat
-        self.delimiter = delimiter
-        self.sheetdelimiter = sheetdelimiter
-        self.skip_empty_lines = skip_empty_lines
-        self.cmd = cmd
         self.py3 = sys.version_info[0] == 3
 
         self.shared_strings = self._parse(SharedStrings, "xl/sharedStrings.xml")
         self.styles = self._parse(Styles, "xl/styles.xml")
         self.workbook = self._parse(Workbook, "xl/workbook.xml")
-        if escape_strings:
+        self.workbook.relationships = self._parse(Relationships, "xl/_rels/workbook.xml.rels")
+        if self.options['escape_strings']:
             self.shared_strings.escape_strings()
 
     def convert(self, outfile, sheetid=1):
@@ -165,7 +170,7 @@ class Xlsx2csv:
                 if not os.path.exists(outfile):
                     os.makedirs(outfile)
                 elif os.path.isfile(outfile):
-                    if cmd:
+                    if self.options['cmd']:
                         sys.stderr.write("File " + outfile + " already exists!" + os.linesep)
                         sys.exit(1)
                     raise OutFileAlreadyExistsException("File " + outfile + " already exists!")
@@ -176,8 +181,8 @@ class Xlsx2csv:
                 of = outfile
                 if isinstance(outfile, str):
                     of = os.path.join(outfile, sheetname + '.csv')
-                elif self.sheetdelimiter and len(self.sheetdelimiter):
-                    of.write(self.sheetdelimiter + " " + str(s['id']) + " - " + sheetname + os.linesep)
+                elif self.options['sheetdelimiter'] and len(self.options['sheetdelimiter']):
+                    of.write(self.options['sheetdelimiter'] + " " + str(s['id']) + " - " + sheetname + os.linesep)
                 self._convert(s['id'], of)
 
     def _convert(self, sheetid, outfile):
@@ -186,17 +191,19 @@ class Xlsx2csv:
             outfile = open(outfile, 'w+')
             closefile = True
         try:
-            writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=self.delimiter, lineterminator=os.linesep)
+            writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=self.options['delimiter'], lineterminator=os.linesep)
             sheetfile = self._filehandle("xl/worksheets/sheet%i.xml" % sheetid)
             if not sheetfile:
-                if self.cmd:
+                if self.options['cmd']:
                     sys.stderr.write("Sheet %s not found!%s" %(sheetid, os.linesep))
                     sys.exit(1)
                 raise SheetNotFoundException("Sheet %s not found" %sheetid)
             try:
                 sheet = Sheet(self.workbook, self.shared_strings, self.styles, sheetfile)
-                sheet.set_dateformat(self.dateformat)
-                sheet.set_skip_empty_lines(self.skip_empty_lines)
+                sheet.relationships = self._parse(Relationships, "xl/worksheets/_rels/sheet%i.xml.rels" % sheetid)
+                sheet.set_dateformat(self.options['dateformat'])
+                sheet.set_skip_empty_lines(self.options['skip_empty_lines'])
+                sheet.set_include_hyperlinks(self.options['hyperlinks'])
                 sheet.to_csv(writer)
             finally:
                 sheetfile.close()
@@ -247,6 +254,26 @@ class Workbook:
                 if 'sheetId' in attrs: id = int(attrs["sheetId"].value)
                 else: id = int(attrs['r:id'].value[3:])
             self.sheets.append({'name': name, 'id': id})
+
+class Relationships:
+    def __init__(self):
+        self.relationships = {}
+
+    def parse(self, filehandle):
+        doc = minidom.parseString(filehandle.read())
+        relationsheeps = doc.getElementsByTagName("Relationships")
+        if not relationsheeps:
+            return
+        for rel in relationsheeps[0].getElementsByTagName("Relationship"):
+            attrs = rel._attrs
+            rId = attrs.get('Id')
+            if rId:
+                vtype = attrs.get('Type')
+                target = attrs.get('Target')
+                self.relationships[str(rId.value)] = {
+                    "type" : vtype and str(vtype.value) or None,
+                    "target" : target and str(target.value) or None
+                }
 
 class Styles:
     def __init__(self):
@@ -326,6 +353,7 @@ class Sheet:
         self.writer = None
         self.sharedString = None
         self.styles = None
+        self.relationships = None
 
         self.in_sheet = False
         self.in_row = False
@@ -336,16 +364,20 @@ class Sheet:
         self.columns = {}
         self.rowNum = None
         self.colType = None
+        self.cellId = None
         self.s_attr = None
         self.data = None
 
         self.dateformat = None
         self.skip_empty_lines = False
 
+        self.filedata = None
         self.filehandle = filehandle
         self.workbook = workbook
         self.sharedStrings = sharedString.strings
         self.styles = styles
+
+        self.hyperlinks = {}
 
     def set_dateformat(self, dateformat):
         self.dateformat = dateformat
@@ -353,13 +385,53 @@ class Sheet:
     def set_skip_empty_lines(self, skip):
         self.skip_empty_lines = skip
 
+    def set_include_hyperlinks(self, hyperlinks):
+        if not hyperlinks or not self.relationships or not self.relationships.relationships:
+            return
+        # we must read file first to get hyperlinks, but we don't wont to parse whole file
+        if not self.filedata:
+            self.filedata = self.filehandle.read()
+        data = str(self.filedata) # python3: convert byte buffer to string
+
+        # find worksheet tag, we need namespaces from it
+        start = data.find("<worksheet")
+        if start < 0:
+            return
+        end = data.find(">", start)
+        worksheet = data[start : end + 1]
+
+        # find hyperlinks part
+        start = data.find("<hyperlinks>")
+        if start < 0:
+            # hyperlinks not found
+            return
+        end = data.find("</hyperlinks>")
+        data = data[start : end + 13]
+
+        # parse hyperlinks
+        doc = minidom.parseString(worksheet + data + "</worksheet>").firstChild
+        for hlink in doc.getElementsByTagName("hyperlink"):
+            attrs = hlink._attrs
+            ref = None
+            for k in attrs.keys():
+                if k == "ref":
+                    ref = str(attrs[k].value)
+                if k.endswith(":id"):
+                    rId = str(attrs[k].value)
+            rel = self.relationships.relationships.get(rId)
+            if rel:
+                self.hyperlinks[ref] = self.relationships.relationships[rId].get('target')
+
     def to_csv(self, writer):
         self.writer = writer
         self.parser = xml.parsers.expat.ParserCreate()
         self.parser.CharacterDataHandler = self.handleCharData
         self.parser.StartElementHandler = self.handleStartElement
         self.parser.EndElementHandler = self.handleEndElement
-        self.parser.ParseFile(self.filehandle)
+        if self.filedata:
+            self.parser.Parse(self.filedata)
+        else:
+            self.parser.ParseFile(self.filehandle)
 
     def handleCharData(self, data):
         if self.in_cell_value:
@@ -413,9 +485,9 @@ class Sheet:
         if self.in_row and name == 'c':
             self.colType = attrs.get("t")
             self.s_attr = attrs.get("s")
-            cellId = attrs.get("r")
-            if cellId:
-                self.colNum = cellId[:len(cellId)-len(self.rowNum)]
+            self.cellId = attrs.get("r")
+            if self.cellId:
+                self.colNum = self.cellId[:len(self.cellId)-len(self.rowNum)]
                 self.colIndex = 0
             else:
                 self.colIndex+= 1
@@ -445,7 +517,12 @@ class Sheet:
         elif self.in_cell and name == 'c':
             t = 0
             for i in self.colNum: t = t*26 + ord(i) - 64
-            self.columns[t - 1 + self.colIndex] = self.data
+            d = self.data
+            if self.hyperlinks:
+                hyperlink = self.hyperlinks.get(self.cellId)
+                if hyperlink:
+                    d = "<a href='" + hyperlink + "'>" + d + "</a>"
+            self.columns[t - 1 + self.colIndex] = d
             self.in_cell = False
         if self.in_row and name == 'row':
             if len(self.columns.keys()) > 0:
@@ -507,6 +584,8 @@ if __name__ == "__main__":
       help="sheet delimiter used to separate sheets, pass '' if you do not need delimiter (default: '--------')")
     parser.add_argument("-s", "--sheet", dest="sheetid", default=1, type=int,
       help="sheet number to convert")
+    parser.add_argument("--hyperlinks", "--hyperlinks", dest="hyperlinks", action="store_true", default=False,
+      help="include hyperlinks")
 
     if argparser:
         options = parser.parse_args()
@@ -536,6 +615,7 @@ if __name__ == "__main__":
       'dateformat' : options.dateformat,
       'skip_empty_lines' : options.skip_empty_lines,
       'escape_strings' : options.escape_strings,
+      'hyperlinks' : options.hyperlinks,
       'cmd' : True
     }
     sheetid = options.sheetid
