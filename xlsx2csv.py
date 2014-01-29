@@ -412,15 +412,20 @@ class Sheet:
         doc = minidom.parseString(worksheet + data + "</worksheet>").firstChild
         for hlink in doc.getElementsByTagName("hyperlink"):
             attrs = hlink._attrs
-            ref = None
+            ref = rId = None
             for k in attrs.keys():
                 if k == "ref":
                     ref = str(attrs[k].value)
                 if k.endswith(":id"):
                     rId = str(attrs[k].value)
+            if not ref or not rId:
+                continue
             rel = self.relationships.relationships.get(rId)
-            if rel:
-                self.hyperlinks[ref] = self.relationships.relationships[rId].get('target')
+            if not rel:
+                continue
+            target = rel.get('target')
+            for cell in self._range(ref):
+                self.hyperlinks[cell] = target
 
     def to_csv(self, writer):
         self.writer = writer
@@ -542,6 +547,35 @@ class Sheet:
             self.in_row = False
         elif self.in_sheet and name == 'sheetData':
             self.in_sheet = False
+
+    # rangeStr: "A3:C12" or "D5"
+    # example: for cell in _range("A1:Z12"): print cell
+    def _range(self, rangeStr):
+        rng = rangeStr.split(":")
+        if len(rng) == 1:
+            yield rangeStr
+        else:
+            start = re.match("^([A-Z]+)(\d+)$", rng[0])
+            end = re.match("^([A-Z]+)(\d+)$", rng[1])
+            if not start or not end:
+                return
+            startCol = start.group(1)
+            startRow = int(start.group(2))
+            endCol = end.group(1)
+            endRow = int(end.group(2))
+            col = startCol
+            while True:
+                for row in range(startRow, endRow + 1):
+                    yield col + str(row)
+                if col == endCol:
+                    break
+                t = 0
+                for i in col: t = t * 26 + ord(i) - 64
+                col = ""
+                while t >= 0:
+                  col = chr(t % 26 + 65) + col
+                  t = (t / 26) - 1
+      
 
 def convert_recursive(path, sheetid, kwargs):
     kwargs['cmd'] = False
