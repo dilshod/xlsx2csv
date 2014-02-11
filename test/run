@@ -37,3 +37,5 @@ compare("xlsx2csv-test-file")
 compare("escape", "-e")
 compare("hyperlinks", "--hyperlinks")
 compare("hyperlinks_continous", "--hyperlinks")
+compare("namespace")
+
