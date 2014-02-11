@@ -234,17 +234,34 @@ class Workbook:
 
     def parse(self, filehandle):
         workbookDoc = minidom.parseString(filehandle.read())
-        if len(workbookDoc.firstChild.getElementsByTagName("fileVersion")) == 0:
+        if workbookDoc.firstChild.namespaceURI:
+            fileVersion = workbookDoc.firstChild.getElementsByTagNameNS(workbookDoc.firstChild.namespaceURI, "fileVersion")
+        else:
+            fileVersion = workbookDoc.firstChild.getElementsByTagName("fileVersion")
+        if len(fileVersion) == 0:
             self.appName = 'unknown'
         else:
-            self.appName = workbookDoc.firstChild.getElementsByTagName("fileVersion")[0]._attrs['appName'].value
+            if workbookDoc.firstChild.namespaceURI:
+                self.appName = workbookDoc.firstChild.getElementsByTagNameNS(workbookDoc.firstChild.namespaceURI, "fileVersion")[0]._attrs['appName'].value
+            else:
+                self.appName = workbookDoc.firstChild.getElementsByTagName("fileVersion")[0]._attrs['appName'].value
         try:
-            self.date1904 = workbookDoc.firstChild.getElementsByTagName("workbookPr")[0]._attrs['date1904'].value.lower().strip() != "false"
+            if workbookDoc.firstChild.namespaceURI:
+                self.date1904 = workbookDoc.firstChild.getElementsByTagNameNS(workbookDoc.firstChild.namespaceURI, "workbookPr")[0]._attrs['date1904'].value.lower().strip() != "false"
+            else:
+                self.date1904 = workbookDoc.firstChild.getElementsByTagName("workbookPr")[0]._attrs['date1904'].value.lower().strip() != "false"
         except:
             pass
 
-        sheets = workbookDoc.firstChild.getElementsByTagName("sheets")[0]
-        for sheetNode in sheets.getElementsByTagName("sheet"):
+        if workbookDoc.firstChild.namespaceURI:
+            sheets = workbookDoc.firstChild.getElementsByTagNameNS(workbookDoc.firstChild.namespaceURI, "sheets")[0]
+        else:
+            sheets = workbookDoc.firstChild.getElementsByTagName("sheets")[0]
+        if workbookDoc.firstChild.namespaceURI:
+            sheetNodes = sheets.getElementsByTagNameNS(workbookDoc.firstChild.namespaceURI, "sheet")
+        else:
+            sheetNodes = sheets.getElementsByTagName("sheet")
+        for sheetNode in sheetNodes:
             attrs = sheetNode._attrs
             name = attrs["name"].value
             if self.appName == 'xl':
@@ -261,10 +278,17 @@ class Relationships:
 
     def parse(self, filehandle):
         doc = minidom.parseString(filehandle.read())
-        relationsheeps = doc.getElementsByTagName("Relationships")
-        if not relationsheeps:
+        if doc.namespaceURI:
+            relationships = doc.getElementsByTagNameNS(doc.namespaceURI, "Relationships")
+        else:
+            relationships = doc.getElementsByTagName("Relationships")
+        if not relationships:
             return
-        for rel in relationsheeps[0].getElementsByTagName("Relationship"):
+        if doc.namespaceURI:
+            relationshipNodes = relationships[0].getElementsByTagNameNS(doc.namespaceURI, "Relationship")
+        else:
+            relationshipNodes = relationships[0].getElementsByTagName("Relationship")
+        for rel in relationshipNodes:
             attrs = rel._attrs
             rId = attrs.get('Id')
             if rId:
@@ -283,7 +307,10 @@ class Styles:
     def parse(self, filehandle):
         styles = minidom.parseString(filehandle.read()).firstChild
         # numFmts
-        numFmtsElement = styles.getElementsByTagName("numFmts")
+        if styles.namespaceURI:
+            numFmtsElement = styles.getElementsByTagNameNS(styles.namespaceURI, "numFmts")
+        else:
+            numFmtsElement = styles.getElementsByTagName("numFmts")
         if len(numFmtsElement) == 1:
             for numFmt in numFmtsElement[0].childNodes:
                 if numFmt.nodeType == minidom.Node.ELEMENT_NODE:
@@ -291,7 +318,10 @@ class Styles:
                     formatCode = numFmt._attrs['formatCode'].value.lower().replace('\\', '')
                     self.numFmts[numFmtId] = formatCode
         # cellXfs
-        cellXfsElement = styles.getElementsByTagName("cellXfs")
+        if styles.namespaceURI:
+            cellXfsElement = styles.getElementsByTagNameNS(styles.namespaceURI, "cellXfs")
+        else:
+            cellXfsElement = styles.getElementsByTagName("cellXfs")
         if len(cellXfsElement) == 1:
             for cellXfs in cellXfsElement[0].childNodes:
                 if cellXfs.nodeType != minidom.Node.ELEMENT_NODE or cellXfs.nodeName != "xf":
@@ -410,7 +440,11 @@ class Sheet:
 
         # parse hyperlinks
         doc = minidom.parseString(worksheet + data + "</worksheet>").firstChild
-        for hlink in doc.getElementsByTagName("hyperlink"):
+        if doc.namespaceURI:
+            hiperlinkNodes = doc.getElementsByTagNameNS(doc.namespaceURI, "hyperlink")
+        else:
+            hiperlinkNodes = doc.getElementsByTagName("hyperlink")
+        for hlink in hiperlinkNodes:
             attrs = hlink._attrs
             ref = rId = None
             for k in attrs.keys():
