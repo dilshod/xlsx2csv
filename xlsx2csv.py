@@ -491,8 +491,15 @@ class Sheet:
                 elif xfs_numfmt in STANDARD_FORMATS:
                     format = STANDARD_FORMATS[xfs_numfmt]
                 # get format type
-                if format and format in FORMATS:
+                if not format:
+                    return
+                format_type = None
+                if format in FORMATS:
                     format_type = FORMATS[format]
+                elif re.match("^\d+$", self.data) and re.match(".*[mdyYhs]", format):
+                    # it must be date format
+                    format_type = "date"
+                if format_type:
                     try:
                         if format_type == 'date': # date/time
                             if self.workbook.date1904:
@@ -503,7 +510,9 @@ class Sheet:
                                 # str(dateformat) - python2.5 bug, see: http://bugs.python.org/issue2782
                                 self.data = date.strftime(str(self.dateformat))
                             else:
-                                dateformat = format.replace("yyyy", "%Y").replace("yy", "%y"). \
+                                # ignore ";@", don't know what does it mean right now
+                                dateformat = format.replace(";@", ""). \
+                                  replace("yyyy", "%Y").replace("yy", "%y"). \
                                   replace("hh:mm", "%H:%M").replace("h", "%H").replace("%H%H", "%H").replace("ss", "%S"). \
                                   replace("d", "%e").replace("%e%e", "%d"). \
                                   replace("mmmm", "%B").replace("mmm", "%b").replace(":mm", ":%M").replace("m", "%m").replace("%m%m", "%m"). \
