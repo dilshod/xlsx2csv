@@ -496,9 +496,14 @@ class Sheet:
                 format_type = None
                 if format in FORMATS:
                     format_type = FORMATS[format]
-                elif re.match("^\d+$", self.data) and re.match(".*[mdyYhs]", format):
+                elif re.match("^\d+(\.\d+)?$", self.data) and re.match(".*[hsmdyY]", format) and not re.match('.*\[.*[dmhys].*\]', format):
                     # it must be date format
-                    format_type = "date"
+                    if float(self.data) < 1:
+                        format_type = "time"
+                    else:
+                        format_type = "date"
+                elif re.match("^\d", self.data):
+                    format_type = "float"
                 if format_type:
                     try:
                         if format_type == 'date': # date/time
@@ -519,7 +524,8 @@ class Sheet:
                                   replace("am/pm", "%p")
                                 self.data = date.strftime(str(dateformat)).strip()
                         elif format_type == 'time': # time
-                            self.data = str(float(self.data) * 24*60*60)
+                            t = int(float(self.data) * 24*60)
+                            self.data = str(t / 60) + ":" + str(t % 60)
                         elif format_type == 'float' and ('E' in self.data or 'e' in self.data):
                             self.data = ("%f" %(float(self.data))).rstrip('0').rstrip('.')
                     except (ValueError, OverflowError):
