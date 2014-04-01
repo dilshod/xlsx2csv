@@ -629,7 +629,7 @@ class Sheet:
 def convert_recursive(path, sheetid, kwargs):
     kwargs['cmd'] = False
     for name in os.listdir(path):
-        fullpath = os.path.join(path, name)
+        fullpath = os.path.join(path, sheetid, name)
         if os.path.isdir(fullpath):
             convert_recursive(fullpath, kwargs)
         else:
