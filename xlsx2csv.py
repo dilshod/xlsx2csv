@@ -629,9 +629,9 @@ class Sheet:
 def convert_recursive(path, sheetid, kwargs):
     kwargs['cmd'] = False
     for name in os.listdir(path):
-        fullpath = os.path.join(path, sheetid, name)
+        fullpath = os.path.join(path, name)
         if os.path.isdir(fullpath):
-            convert_recursive(fullpath, kwargs)
+            convert_recursive(fullpath, sheetid, kwargs)
         else:
             if fullpath.lower().endswith(".xlsx"):
                 outfilepath = fullpath[:-4] + 'csv'
