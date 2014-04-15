@@ -12,6 +12,7 @@ Installation:
 Usage:
   xlsx2csv.py [-h] [-v] [-a] [-d DELIMITER] [-f DATEFORMAT] [-i] [-e]
               [-p SHEETDELIMITER] [-s SHEETID] [--hyperlinks]
+              [-I INCLUDE_SHEET_PATTERN] [-E EXCLUDE_SHEET_PATTERN]
               xlsxfile [outfile]
 
   xlsxfile              xlsx file path
@@ -34,6 +35,13 @@ optional arguments:
   -s SHEETID, --sheet SHEETID
                         sheet number to convert
   --hyperlinks          include hyperlinks
+  -I INCLUDE_SHEET_PATTERN, --include INCLUDE_SHEET_PATTERN
+                        only include sheets named matching given pattern, only 
+                        effects when -a option is enabled.
+  -E EXCLUDE_SHEET_PATTERN, --exclude EXCLUDE_SHEET_PATTERN
+                        exclude sheets named matching given pattern, only effects
+                        when -a option is enabled.
+  
 
 Expat SAX parser used for xml parsing.
 

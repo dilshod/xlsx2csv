@@ -684,9 +684,9 @@ if __name__ == "__main__":
     parser.add_argument("--hyperlinks", "--hyperlinks", dest="hyperlinks", action="store_true", default=False,
                         help="include hyperlinks")
     parser.add_argument("-I", "--include_sheet_pattern", dest="include_sheet_pattern", default="^.*$",
-                        help="only include sheets named matching given pattern, only effects when -a option is enable.")
+                        help="only include sheets named matching given pattern, only effects when -a option is enabled.")
     parser.add_argument("-E", "--exclude_sheet_pattern", dest="exclude_sheet_pattern", default="",
-                        help="exclude sheets named matching given pattern, only effects when -a option is enable.")
+                        help="exclude sheets named matching given pattern, only effects when -a option is enabled.")
 
 
     if argparser:
