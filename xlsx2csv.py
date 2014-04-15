@@ -133,6 +133,8 @@ class Xlsx2csv:
        sheetdelimiter - sheets delimiter used when processing all sheets
        skip_empty_lines - skip empty lines
        hyperlinks - include hyperlinks
+       include_sheet_pattern - only include sheets named matching given pattern
+       exclude_sheet_pattern - exclude sheets named matching given pattern
     """
 
     def __init__(self, xlsxfile, **options):
@@ -161,7 +163,7 @@ class Xlsx2csv:
         if self.options['escape_strings']:
             self.shared_strings.escape_strings()
 
-    def convert(self, outfile, sheetid=1):
+    def convert(self, outfile, sheetid=1, include_sheet_pattern="^.*$", exclude_sheet_pattern=""):
         """outfile - path to file or filehandle"""
         if sheetid > 0:
             self._convert(sheetid, outfile)
@@ -176,6 +178,15 @@ class Xlsx2csv:
                     raise OutFileAlreadyExistsException("File " + outfile + " already exists!")
             for s in self.workbook.sheets:
                 sheetname = s['name']
+
+                # filter sheets by include pattern
+                if len(include_sheet_pattern) > 0 and not re.match(include_sheet_pattern, sheetname):
+                    continue
+
+                # filter sheets by exclude pattern
+                if len(exclude_sheet_pattern) > 0 and re.match(exclude_sheet_pattern, sheetname):
+                    continue
+
                 if not self.py3:
                     sheetname = sheetname.encode('utf-8')
                 of = outfile
@@ -624,22 +635,25 @@ class Sheet:
                 while t >= 0:
                   col = chr(t % 26 + 65) + col
                   t = (t / 26) - 1
-      
 
-def convert_recursive(path, sheetid, kwargs):
+
+def convert_recursive(path, sheetid, outfile, include_sheet_pattern, exclude_sheet_pattern, kwargs):
     kwargs['cmd'] = False
     for name in os.listdir(path):
         fullpath = os.path.join(path, name)
         if os.path.isdir(fullpath):
-            convert_recursive(fullpath, sheetid, kwargs)
+            convert_recursive(fullpath, sheetid, outfile, include_sheet_pattern, exclude_sheet_pattern, kwargs)
         else:
-            if fullpath.lower().endswith(".xlsx"):
+            outfilepath = outfile if len(outfile) > 0 else ""
+
+            if len(outfilepath) == 0 and fullpath.lower().endswith(".xlsx"):
                 outfilepath = fullpath[:-4] + 'csv'
-                print("Converting %s to %s" %(fullpath, outfilepath))
-                try:
-                    Xlsx2csv(fullpath, **kwargs).convert(outfilepath, sheetid)
-                except zipfile.BadZipfile:
-                    print("File %s is not a zip file" %fullpath)
+
+            print("Converting %s to %s" %(fullpath, outfilepath))
+            try:
+                Xlsx2csv(fullpath, **kwargs).convert(outfilepath, sheetid, include_sheet_pattern, exclude_sheet_pattern)
+            except zipfile.BadZipfile:
+                print("File %s is not a zip file" %fullpath)
 
 if __name__ == "__main__":
     if "ArgumentParser" in globals():
@@ -654,21 +668,26 @@ if __name__ == "__main__":
         argparser = False
 
     parser.add_argument("-a", "--all", dest="all", default=False, action="store_true",
-      help="export all sheets")
+                        help="export all sheets")
     parser.add_argument("-d", "--delimiter", dest="delimiter", default=",",
-      help="delimiter - columns delimiter in csv, 'tab' or 'x09' for a tab (default: comma ',')")
+                        help="delimiter - columns delimiter in csv, 'tab' or 'x09' for a tab (default: comma ',')")
     parser.add_argument("-f", "--dateformat", dest="dateformat",
-      help="override date/time format (ex. %%Y/%%m/%%d)")
+                        help="override date/time format (ex. %%Y/%%m/%%d)")
     parser.add_argument("-i", "--ignoreempty", dest="skip_empty_lines", default=False, action="store_true",
-      help="skip empty lines")
+                        help="skip empty lines")
     parser.add_argument("-e", "--escape", dest='escape_strings', default=False, action="store_true",
-      help="Escape \\r\\n\\t characters")
+                        help="Escape \\r\\n\\t characters")
     parser.add_argument("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
-      help="sheet delimiter used to separate sheets, pass '' if you do not need delimiter (default: '--------')")
+                        help="sheet delimiter used to separate sheets, pass '' if you do not need delimiter (default: '--------')")
     parser.add_argument("-s", "--sheet", dest="sheetid", default=1, type=int,
-      help="sheet number to convert")
+                        help="sheet number to convert")
     parser.add_argument("--hyperlinks", "--hyperlinks", dest="hyperlinks", action="store_true", default=False,
-      help="include hyperlinks")
+                        help="include hyperlinks")
+    parser.add_argument("-I", "--include_sheet_pattern", dest="include_sheet_pattern", default="^.*$",
+                        help="only include sheets named matching given pattern, only effects when -a option is enable.")
+    parser.add_argument("-E", "--exclude_sheet_pattern", dest="exclude_sheet_pattern", default="",
+                        help="exclude sheets named matching given pattern, only effects when -a option is enable.")
+
 
     if argparser:
         options = parser.parse_args()
@@ -693,21 +712,23 @@ if __name__ == "__main__":
         raise XlsxException("Invalid delimiter")
 
     kwargs = {
-      'delimiter' : delimiter,
-      'sheetdelimiter' : options.sheetdelimiter,
-      'dateformat' : options.dateformat,
-      'skip_empty_lines' : options.skip_empty_lines,
-      'escape_strings' : options.escape_strings,
-      'hyperlinks' : options.hyperlinks,
-      'cmd' : True
+        'delimiter' : delimiter,
+        'sheetdelimiter' : options.sheetdelimiter,
+        'dateformat' : options.dateformat,
+        'skip_empty_lines' : options.skip_empty_lines,
+        'escape_strings' : options.escape_strings,
+        'hyperlinks' : options.hyperlinks,
+        'cmd' : True
     }
     sheetid = options.sheetid
+    include_sheet_pattern = options.include_sheet_pattern
+    exclude_sheet_pattern = options.exclude_sheet_pattern
     if options.all:
         sheetid = 0
 
+    outfile = options.outfile or sys.stdout
     if os.path.isdir(options.infile):
-        convert_recursive(options.infile, sheetid, kwargs)
+        convert_recursive(options.infile, sheetid, outfile, include_sheet_pattern, exclude_sheet_pattern, kwargs)
     else:
         xlsx2csv = Xlsx2csv(options.infile, **kwargs)
-        outfile = options.outfile or sys.stdout
-        xlsx2csv.convert(outfile, sheetid)
+        xlsx2csv.convert(outfile, sheetid, include_sheet_pattern, exclude_sheet_pattern)
