@@ -133,6 +133,8 @@ class Xlsx2csv:
        sheetdelimiter - sheets delimiter used when processing all sheets
        skip_empty_lines - skip empty lines
        hyperlinks - include hyperlinks
+       include_sheet_pattern - only include sheets named matching given pattern
+       exclude_sheet_pattern - exclude sheets named matching given pattern
     """
 
     def __init__(self, xlsxfile, **options):
@@ -142,6 +144,8 @@ class Xlsx2csv:
         options.setdefault("skip_empty_lines", False)
         options.setdefault("escape_strings", False)
         options.setdefault("cmd", False)
+        options.setdefault("include_sheet_pattern", "^.*$")
+        options.setdefault("exclude_sheet_pattern", "")
 
         self.options = options
         try:
@@ -176,6 +180,17 @@ class Xlsx2csv:
                     raise OutFileAlreadyExistsException("File " + outfile + " already exists!")
             for s in self.workbook.sheets:
                 sheetname = s['name']
+
+                include_sheet_pattern = self.options['include_sheet_pattern']
+                # filter sheets by include pattern
+                if len(include_sheet_pattern) > 0 and not re.match(include_sheet_pattern, sheetname):
+                    continue
+
+                exclude_sheet_pattern = self.options['exclude_sheet_pattern']
+                # filter sheets by exclude pattern
+                if len(exclude_sheet_pattern) > 0 and re.match(exclude_sheet_pattern, sheetname):
+                    continue
+
                 if not self.py3:
                     sheetname = sheetname.encode('utf-8')
                 of = outfile
@@ -624,22 +639,25 @@ class Sheet:
                 while t >= 0:
                   col = chr(t % 26 + 65) + col
                   t = (t / 26) - 1
-      
 
-def convert_recursive(path, sheetid, kwargs):
+
+def convert_recursive(path, sheetid, outfile, kwargs):
     kwargs['cmd'] = False
     for name in os.listdir(path):
         fullpath = os.path.join(path, name)
         if os.path.isdir(fullpath):
-            convert_recursive(fullpath, sheetid, kwargs)
+            convert_recursive(fullpath, sheetid, outfile, kwargs)
         else:
-            if fullpath.lower().endswith(".xlsx"):
+            outfilepath = outfile if len(outfile) > 0 else ""
+
+            if len(outfilepath) == 0 and fullpath.lower().endswith(".xlsx"):
                 outfilepath = fullpath[:-4] + 'csv'
-                print("Converting %s to %s" %(fullpath, outfilepath))
-                try:
-                    Xlsx2csv(fullpath, **kwargs).convert(outfilepath, sheetid)
-                except zipfile.BadZipfile:
-                    print("File %s is not a zip file" %fullpath)
+
+            print("Converting %s to %s" %(fullpath, outfilepath))
+            try:
+                Xlsx2csv(fullpath, **kwargs).convert(outfilepath, sheetid)
+            except zipfile.BadZipfile:
+                print("File %s is not a zip file" %fullpath)
 
 if __name__ == "__main__":
     if "ArgumentParser" in globals():
@@ -669,6 +687,10 @@ if __name__ == "__main__":
       help="sheet number to convert")
     parser.add_argument("--hyperlinks", "--hyperlinks", dest="hyperlinks", action="store_true", default=False,
       help="include hyperlinks")
+    parser.add_argument("-I", "--include_sheet_pattern", dest="include_sheet_pattern", default="^.*$",
+      help="only include sheets named matching given pattern, only effects when -a option is enabled.")
+    parser.add_argument("-E", "--exclude_sheet_pattern", dest="exclude_sheet_pattern", default="",
+      help="exclude sheets named matching given pattern, only effects when -a option is enabled.")
 
     if argparser:
         options = parser.parse_args()
@@ -699,15 +721,17 @@ if __name__ == "__main__":
       'skip_empty_lines' : options.skip_empty_lines,
       'escape_strings' : options.escape_strings,
       'hyperlinks' : options.hyperlinks,
-      'cmd' : True
+      'cmd' : True,
+      'include_sheet_pattern' : options.include_sheet_pattern,
+      'exclude_sheet_pattern' : options.exclude_sheet_pattern
     }
     sheetid = options.sheetid
     if options.all:
         sheetid = 0
 
+    outfile = options.outfile or sys.stdout
     if os.path.isdir(options.infile):
-        convert_recursive(options.infile, sheetid, kwargs)
+        convert_recursive(options.infile, sheetid, outfile, kwargs)
     else:
         xlsx2csv = Xlsx2csv(options.infile, **kwargs)
-        outfile = options.outfile or sys.stdout
         xlsx2csv.convert(outfile, sheetid)
