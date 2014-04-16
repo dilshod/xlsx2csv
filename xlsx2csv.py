@@ -648,7 +648,9 @@ def convert_recursive(path, sheetid, outfile, kwargs):
         if os.path.isdir(fullpath):
             convert_recursive(fullpath, sheetid, outfile, kwargs)
         else:
-            outfilepath = outfile if len(outfile) > 0 else ""
+            # strange code, python2.4 fix
+            #outfilepath = outfile if len(outfile) > 0 else ""
+            outfilepath = outfile
 
             if len(outfilepath) == 0 and fullpath.lower().endswith(".xlsx"):
                 outfilepath = fullpath[:-4] + 'csv'
