@@ -208,6 +208,8 @@ class Xlsx2csv:
         try:
             writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=self.options['delimiter'], lineterminator=os.linesep)
             sheetfile = self._filehandle("xl/worksheets/sheet%i.xml" % sheetid)
+            if not sheetfile and sheetid == 1:
+                sheetfile = self._filehandle("xl/worksheets/sheet.xml")
             if not sheetfile:
                 if self.options['cmd']:
                     sys.stderr.write("Sheet %s not found!%s" %(sheetid, os.linesep))
@@ -339,7 +341,7 @@ class Styles:
             cellXfsElement = styles.getElementsByTagName("cellXfs")
         if len(cellXfsElement) == 1:
             for cellXfs in cellXfsElement[0].childNodes:
-                if cellXfs.nodeType != minidom.Node.ELEMENT_NODE or cellXfs.nodeName != "xf":
+                if cellXfs.nodeType != minidom.Node.ELEMENT_NODE or not (cellXfs.nodeName == "xf" or cellXfs.nodeName.endswith(":xf")):
                     continue
                 if 'numFmtId' in cellXfs._attrs:
                     numFmtId = int(cellXfs._attrs['numFmtId'].value)
@@ -551,7 +553,8 @@ class Sheet:
         #    self.formula = data
 
     def handleStartElement(self, name, attrs):
-        if self.in_row and name == 'c':
+        has_namespace = name.find(":") > 0
+        if self.in_row and (name == 'c' or (has_namespace and name.endswith(':c'))):
             self.colType = attrs.get("t")
             self.s_attr = attrs.get("s")
             self.cellId = attrs.get("r")
@@ -563,27 +566,28 @@ class Sheet:
             #self.formula = None
             self.data = ""
             self.in_cell = True
-        elif self.in_cell and (name == 'v' or name == 'is'):
+        elif self.in_cell and ((name == 'v' or name == 'is') or (has_namespace and (name.endswith(':v') or name.endswith(':is')))):
             self.in_cell_value = True
             self.collected_string = ""
         #elif self.in_cell and name == 'f':
         #    self.in_cell_formula = True
-        elif self.in_sheet and name == 'row' and 'r' in attrs:
+        elif self.in_sheet and (name == 'row' or (has_namespace and name.endswith(':row'))) and ('r' in attrs):
             self.rowNum = attrs['r']
             self.in_row = True
             self.columns = {}
             self.spans = None
             if 'spans' in attrs:
                 self.spans = [int(i) for i in attrs['spans'].split(":")]
-        elif name == 'sheetData':
+        elif name == 'sheetData' or (has_namespace and name.endswith(':sheetData')):
             self.in_sheet = True
 
     def handleEndElement(self, name):
+        has_namespace = name.find(":") > 0
         if self.in_cell and name == 'v':
             self.in_cell_value = False
         #elif self.in_cell and name == 'f':
         #    self.in_cell_formula = False
-        elif self.in_cell and name == 'c':
+        elif self.in_cell and (name == 'c' or (has_namespace and name.endswith(':c'))):
             t = 0
             for i in self.colNum: t = t*26 + ord(i) - 64
             d = self.data
@@ -593,7 +597,7 @@ class Sheet:
                     d = "<a href='" + hyperlink + "'>" + d + "</a>"
             self.columns[t - 1 + self.colIndex] = d
             self.in_cell = False
-        if self.in_row and name == 'row':
+        if self.in_row and (name == 'row' or (has_namespace and name.endswith(':row'))):
             if len(self.columns.keys()) > 0:
                 d = [""] * (max(self.columns.keys()) + 1)
                 for k in self.columns.keys():
@@ -609,7 +613,7 @@ class Sheet:
                 if not self.skip_empty_lines or d.count('') != len(d):
                     self.writer.writerow(d)
             self.in_row = False
-        elif self.in_sheet and name == 'sheetData':
+        elif self.in_sheet and (name == 'sheetData' or (has_namespace and name.endswith(':sheetData'))):
             self.in_sheet = False
 
     # rangeStr: "A3:C12" or "D5"
