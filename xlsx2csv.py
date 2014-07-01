@@ -542,7 +542,7 @@ class Sheet:
                                 self.data = date.strftime(str(dateformat)).strip()
                         elif format_type == 'time': # time
                             t = int(float(self.data) * 24*60)
-                            self.data = str(t / 60) + ":" + str(t % 60)
+                            self.data = str(t / 60) + ":" + ('0' + str(t % 60))[-2:]
                         elif format_type == 'float' and ('E' in self.data or 'e' in self.data):
                             self.data = ("%f" %(float(self.data))).rstrip('0').rstrip('.')
                     except (ValueError, OverflowError):
