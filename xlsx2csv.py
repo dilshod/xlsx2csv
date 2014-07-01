@@ -657,7 +657,7 @@ class Sheet:
                 col = ""
                 while t >= 0:
                   col = chr(t % 26 + 65) + col
-                  t = (t / 26) - 1
+                  t = t // 26 - 1
 
 
 def convert_recursive(path, sheetid, outfile, kwargs):
