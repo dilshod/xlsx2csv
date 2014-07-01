@@ -401,6 +401,7 @@ class Sheet:
         self.sharedString = None
         self.styles = None
         self.relationships = None
+        self.columns_count = -1
 
         self.in_sheet = False
         self.in_row = False
@@ -580,6 +581,18 @@ class Sheet:
                 self.spans = [int(i) for i in attrs['spans'].split(":")]
         elif name == 'sheetData' or (has_namespace and name.endswith(':sheetData')):
             self.in_sheet = True
+        elif name == 'dimension':
+            rng = attrs.get("ref").split(":")
+            if len(rng) > 1:
+                start = re.match("^([A-Z]+)(\d+)$", rng[0])
+                end = re.match("^([A-Z]+)(\d+)$", rng[1])
+                startCol = start.group(1)
+                #startRow = int(start.group(2))
+                endCol = end.group(1)
+                #endRow = int(end.group(2))
+                self.columns_count = 0
+                for cell in self._range(startCol + "1:" + endCol + "1"):
+                    self.columns_count+= 1
 
     def handleEndElement(self, name):
         has_namespace = name.find(":") > 0
@@ -611,6 +624,8 @@ class Sheet:
                         d+= (l - len(d)) * ['']
                 # write line to csv
                 if not self.skip_empty_lines or d.count('') != len(d):
+                    while len(d) < self.columns_count:
+                        d.append("")
                     self.writer.writerow(d)
             self.in_row = False
         elif self.in_sheet and (name == 'sheetData' or (has_namespace and name.endswith(':sheetData'))):
