@@ -38,4 +38,4 @@ compare("escape", "-e")
 compare("hyperlinks", "--hyperlinks")
 compare("hyperlinks_continous", "--hyperlinks")
 compare("namespace")
-
+compare("float")
