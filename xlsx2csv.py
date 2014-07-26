@@ -165,6 +165,12 @@ class Xlsx2csv:
         if self.options['escape_strings']:
             self.shared_strings.escape_strings()
 
+    def getSheetIdByName(self, name):
+        for s in self.workbook.sheets:
+            if s['name'] == name:
+                return s['id']
+        return None
+
     def convert(self, outfile, sheetid=1):
         """outfile - path to file or filehandle"""
         if sheetid > 0:
@@ -694,6 +700,10 @@ if __name__ == "__main__":
 
     parser.add_argument("-a", "--all", dest="all", default=False, action="store_true",
       help="export all sheets")
+    parser.add_argument("-s", "--sheet", dest="sheetid", default=1, type=int,
+      help="sheet number to convert")
+    parser.add_argument("-n", "--sheetname", dest="sheetname", default=None,
+      help="sheet name to convert")
     parser.add_argument("-d", "--delimiter", dest="delimiter", default=",",
       help="delimiter - columns delimiter in csv, 'tab' or 'x09' for a tab (default: comma ',')")
     parser.add_argument("-f", "--dateformat", dest="dateformat",
@@ -704,8 +714,6 @@ if __name__ == "__main__":
       help="Escape \\r\\n\\t characters")
     parser.add_argument("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
       help="sheet delimiter used to separate sheets, pass '' if you do not need delimiter (default: '--------')")
-    parser.add_argument("-s", "--sheet", dest="sheetid", default=1, type=int,
-      help="sheet number to convert")
     parser.add_argument("--hyperlinks", "--hyperlinks", dest="hyperlinks", action="store_true", default=False,
       help="include hyperlinks")
     parser.add_argument("-I", "--include_sheet_pattern", dest="include_sheet_pattern", default="^.*$",
@@ -755,4 +763,9 @@ if __name__ == "__main__":
         convert_recursive(options.infile, sheetid, outfile, kwargs)
     else:
         xlsx2csv = Xlsx2csv(options.infile, **kwargs)
+        if options.sheetname:
+            sheetid = xlsx2csv.getSheetIdByName(options.sheetname)
+            if not sheetid:
+                raise XlsxException("Sheet '%s' not found" % options.sheetname)
+
         xlsx2csv.convert(outfile, sheetid)
