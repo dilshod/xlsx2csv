@@ -552,6 +552,9 @@ class Sheet:
                             self.data = "%.2i:%.2i" %(t / 60, t % 60)  #str(t / 60) + ":" + ('0' + str(t % 60))[-2:]
                         elif format_type == 'float' and ('E' in self.data or 'e' in self.data):
                             self.data = ("%f" %(float(self.data))).rstrip('0').rstrip('.')
+                        elif format_type == 'float' and format[0:3] == '0.0':
+                            self.data = ("%." + str(len(format.split(".")[1])) + "f") % float(self.data)
+                            
                     except (ValueError, OverflowError):
                         # invalid date format
                         pass
@@ -663,7 +666,7 @@ class Sheet:
                 col = ""
                 while t >= 0:
                   col = chr(t % 26 + 65) + col
-                  t = (t / 26) - 1
+                  t = t // 26 - 1
 
 
 def convert_recursive(path, sheetid, outfile, kwargs):
