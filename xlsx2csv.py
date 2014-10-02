@@ -144,8 +144,8 @@ class Xlsx2csv:
         options.setdefault("skip_empty_lines", False)
         options.setdefault("escape_strings", False)
         options.setdefault("cmd", False)
-        options.setdefault("include_sheet_pattern", "^.*$")
-        options.setdefault("exclude_sheet_pattern", "")
+        options.setdefault("include_sheet_pattern", ["^.*$"])
+        options.setdefault("exclude_sheet_pattern", [])
         options.setdefault("merge_cells", False)
 
         self.options = options
@@ -188,14 +188,29 @@ class Xlsx2csv:
             for s in self.workbook.sheets:
                 sheetname = s['name']
 
-                include_sheet_pattern = self.options['include_sheet_pattern']
                 # filter sheets by include pattern
-                if len(include_sheet_pattern) > 0 and not re.match(include_sheet_pattern, sheetname):
-                    continue
+                include_sheet_pattern = self.options['include_sheet_pattern']
+                if type(include_sheet_pattern) == type(""): # optparser lib fix
+                    include_sheet_pattern = [include_sheet_pattern]
+                if len(include_sheet_pattern) > 0:
+                    include = False
+                    for pattern in include_sheet_pattern:
+                        include = pattern and len(pattern) > 0 and re.match(pattern, sheetname)
+                        if include:
+                            break
+                    if not include:
+                        continue
 
-                exclude_sheet_pattern = self.options['exclude_sheet_pattern']
                 # filter sheets by exclude pattern
-                if len(exclude_sheet_pattern) > 0 and re.match(exclude_sheet_pattern, sheetname):
+                exclude_sheet_pattern = self.options['exclude_sheet_pattern']
+                if type(exclude_sheet_pattern) == type(""): # optparser lib fix
+                    exclude_sheet_pattern = [exclude_sheet_pattern]
+                exclude = False
+                for pattern in exclude_sheet_pattern:
+                    exclude = pattern and len(pattern) > 0 and re.match(pattern, sheetname)
+                    if exclude:
+                        break
+                if exclude:
                     continue
 
                 if not self.py3:
@@ -688,6 +703,7 @@ class Sheet:
             self.in_row = False
         elif self.in_sheet and (name == 'sheetData' or (has_namespace and name.endswith(':sheetData'))):
             self.in_sheet = False
+
     # rangeStr: "A3:C12" or "D5"
     # example: for cell in _range("A1:Z12"): print cell
     def _range(self, rangeStr):
@@ -743,10 +759,12 @@ if __name__ == "__main__":
         parser.add_argument('infile', metavar='xlsxfile', help="xlsx file path")
         parser.add_argument('outfile', metavar='outfile', nargs='?', help="output csv file path")
         parser.add_argument('-v', '--version', action='version', version='%(prog)s')
+        nargs_plus = "+"
         argparser = True
     else:
         parser = OptionParser(usage = "%prog [options] infile [outfile]", version=__version__)
         parser.add_argument = parser.add_option
+        nargs_plus = 1
         argparser = False
 
     parser.add_argument("-a", "--all", dest="all", default=False, action="store_true",
@@ -767,9 +785,9 @@ if __name__ == "__main__":
       help="sheet delimiter used to separate sheets, pass '' if you do not need delimiter (default: '--------')")
     parser.add_argument("--hyperlinks", "--hyperlinks", dest="hyperlinks", action="store_true", default=False,
       help="include hyperlinks")
-    parser.add_argument("-I", "--include_sheet_pattern", dest="include_sheet_pattern", default="^.*$",
+    parser.add_argument("-I", "--include_sheet_pattern", nargs=nargs_plus, dest="include_sheet_pattern", default="^.*$",
       help="only include sheets named matching given pattern, only effects when -a option is enabled.")
-    parser.add_argument("-E", "--exclude_sheet_pattern", dest="exclude_sheet_pattern", default="",
+    parser.add_argument("-E", "--exclude_sheet_pattern", nargs=nargs_plus, dest="exclude_sheet_pattern", default="",
       help="exclude sheets named matching given pattern, only effects when -a option is enabled.")
     parser.add_argument("-m", "--merge-cells", dest="merge_cells", default=False, action="store_true",
       help="merge cells")
