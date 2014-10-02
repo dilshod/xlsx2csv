@@ -281,10 +281,14 @@ class Workbook:
         if len(fileVersion) == 0:
             self.appName = 'unknown'
         else:
-            if workbookDoc.firstChild.namespaceURI:
-                self.appName = workbookDoc.firstChild.getElementsByTagNameNS(workbookDoc.firstChild.namespaceURI, "fileVersion")[0]._attrs['appName'].value
-            else:
-                self.appName = workbookDoc.firstChild.getElementsByTagName("fileVersion")[0]._attrs['appName'].value
+            try:
+                if workbookDoc.firstChild.namespaceURI:
+                    self.appName = workbookDoc.firstChild.getElementsByTagNameNS(workbookDoc.firstChild.namespaceURI, "fileVersion")[0]._attrs['appName'].value
+                else:
+                    self.appName = workbookDoc.firstChild.getElementsByTagName("fileVersion")[0]._attrs['appName'].value
+            except KeyError:
+                # no app name
+                self.appName = 'unknown'
         try:
             if workbookDoc.firstChild.namespaceURI:
                 self.date1904 = workbookDoc.firstChild.getElementsByTagNameNS(workbookDoc.firstChild.namespaceURI, "workbookPr")[0]._attrs['date1904'].value.lower().strip() != "false"
