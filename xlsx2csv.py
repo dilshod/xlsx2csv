@@ -21,7 +21,7 @@
 
 __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
 __license__ = "GPL-2+"
-__version__ = "0.6"
+__version__ = "0.6.1"
 
 import csv, datetime, zipfile, string, sys, os, re
 import xml.parsers.expat
@@ -146,6 +146,7 @@ class Xlsx2csv:
         options.setdefault("cmd", False)
         options.setdefault("include_sheet_pattern", "^.*$")
         options.setdefault("exclude_sheet_pattern", "")
+        options.setdefault("merge_cells", False)
 
         self.options = options
         try:
@@ -227,6 +228,7 @@ class Xlsx2csv:
                 sheet.set_dateformat(self.options['dateformat'])
                 sheet.set_skip_empty_lines(self.options['skip_empty_lines'])
                 sheet.set_include_hyperlinks(self.options['hyperlinks'])
+                sheet.set_merge_cells(self.options['merge_cells'])
                 sheet.to_csv(writer)
             finally:
                 sheetfile.close()
@@ -432,6 +434,7 @@ class Sheet:
         self.styles = styles
 
         self.hyperlinks = {}
+        self.mergeCells = {}
 
     def set_dateformat(self, dateformat):
         self.dateformat = dateformat
@@ -439,6 +442,45 @@ class Sheet:
     def set_skip_empty_lines(self, skip):
         self.skip_empty_lines = skip
 
+    def set_merge_cells(self, mergecells):
+        if not mergecells:
+            return
+        if not self.filedata:
+            self.filedata = self.filehandle.read()
+        data = str(self.filedata) # python3: convert byte buffer to string
+
+        # find worksheet tag, we need namespaces from it
+        start = data.find("<worksheet")
+        if start < 0:
+            return
+        end = data.find(">", start)
+        worksheet = data[start : end + 1]
+
+        # find hyperlinks part
+        start = data.find("<mergeCells")
+        if start < 0:
+            # hyperlinks not found
+            return
+        end = data.find("</mergeCells>")
+        data = data[start : end + 13]
+
+        # parse hyperlinks
+        doc = minidom.parseString(worksheet + data + "</worksheet>").firstChild
+
+        if doc.namespaceURI:
+            mergeCells = doc.getElementsByTagNameNS(doc.namespaceURI, "mergeCell")
+        else:
+            mergeCells = doc.getElementsByTagName("mergeCell")
+        for mergeCell in mergeCells:
+            attrs = mergeCell._attrs
+            if 'ref' in attrs.keys():
+                rangeStr = attrs['ref'].value
+                rng = rangeStr.split(":")
+                if len(rng) > 1:
+                    for cell in self._range(rangeStr):
+                        self.mergeCells[cell] = {}
+                        self.mergeCells[cell]['copyFrom'] = rng[0]
+        
     def set_include_hyperlinks(self, hyperlinks):
         if not hyperlinks or not self.relationships or not self.relationships.relationships:
             return
@@ -588,6 +630,7 @@ class Sheet:
             self.spans = None
             if 'spans' in attrs:
                 self.spans = [int(i) for i in attrs['spans'].split(":")]
+
         elif name == 'sheetData' or (has_namespace and name.endswith(':sheetData')):
             self.in_sheet = True
         elif name == 'dimension':
@@ -617,8 +660,14 @@ class Sheet:
                 hyperlink = self.hyperlinks.get(self.cellId)
                 if hyperlink:
                     d = "<a href='" + hyperlink + "'>" + d + "</a>"
+            if self.colNum + self.rowNum in self.mergeCells.keys():
+                if 'copyFrom' in self.mergeCells[self.colNum + self.rowNum].keys() and self.mergeCells[self.colNum + self.rowNum]['copyFrom'] == self.colNum + self.rowNum:
+                    self.mergeCells[self.colNum + self.rowNum]['value'] = d
+                elif len(d) == len(''):
+                    d = self.mergeCells[self.mergeCells[self.colNum + self.rowNum]['copyFrom']]['value']
+
             self.columns[t - 1 + self.colIndex] = d
-            self.in_cell = False
+
         if self.in_row and (name == 'row' or (has_namespace and name.endswith(':row'))):
             if len(self.columns.keys()) > 0:
                 d = [""] * (max(self.columns.keys()) + 1)
@@ -639,7 +688,6 @@ class Sheet:
             self.in_row = False
         elif self.in_sheet and (name == 'sheetData' or (has_namespace and name.endswith(':sheetData'))):
             self.in_sheet = False
-
     # rangeStr: "A3:C12" or "D5"
     # example: for cell in _range("A1:Z12"): print cell
     def _range(self, rangeStr):
@@ -723,6 +771,8 @@ if __name__ == "__main__":
       help="only include sheets named matching given pattern, only effects when -a option is enabled.")
     parser.add_argument("-E", "--exclude_sheet_pattern", dest="exclude_sheet_pattern", default="",
       help="exclude sheets named matching given pattern, only effects when -a option is enabled.")
+    parser.add_argument("-m", "--merge-cells", dest="merge_cells", default=False, action="store_true",
+      help="merge cells")
 
     if argparser:
         options = parser.parse_args()
@@ -755,7 +805,8 @@ if __name__ == "__main__":
       'hyperlinks' : options.hyperlinks,
       'cmd' : True,
       'include_sheet_pattern' : options.include_sheet_pattern,
-      'exclude_sheet_pattern' : options.exclude_sheet_pattern
+      'exclude_sheet_pattern' : options.exclude_sheet_pattern,
+      'merge_cells' : options.merge_cells
     }
     sheetid = options.sheetid
     if options.all:
