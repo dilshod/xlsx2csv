@@ -308,7 +308,7 @@ class Workbook:
         for sheetNode in sheetNodes:
             attrs = sheetNode._attrs
             name = attrs["name"].value
-            if self.appName == 'xl':
+            if self.appName == 'xl' and len(attrs["r:id"].value) > 2:
                 if 'r:id' in attrs: id = int(attrs["r:id"].value[3:])
                 else: id = int(attrs['sheetId'].value)
             else:
