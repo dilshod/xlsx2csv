@@ -126,6 +126,8 @@ class OutFileAlreadyExistsException(XlsxException):
 class Xlsx2csv:
     """
      Usage: Xlsx2csv("test.xslx", **params).convert("test.csv", sheetid=1)
+     Input:
+       xlsxfile - path to file or filehandle
      options:
        sheetid - sheet no to convert (0 for all sheets)
        dateformat - override date/time format
@@ -153,9 +155,9 @@ class Xlsx2csv:
             self.ziphandle = zipfile.ZipFile(xlsxfile)
         except (zipfile.BadZipfile, IOError):
             if self.options['cmd']:
-                sys.stderr.write("Invalid xlsx file: " + xlsxfile + os.linesep)
+                sys.stderr.write("Invalid xlsx file: " + str(xlsxfile) + os.linesep)
                 sys.exit(1)
-            raise InvalidXlsxFileException("Invalid xlsx file: " + xlsxfile)
+            raise InvalidXlsxFileException("Invalid xlsx file: " + str(xlsxfile))
 
         self.py3 = sys.version_info[0] == 3
 
@@ -182,9 +184,9 @@ class Xlsx2csv:
                     os.makedirs(outfile)
                 elif os.path.isfile(outfile):
                     if self.options['cmd']:
-                        sys.stderr.write("File " + outfile + " already exists!" + os.linesep)
+                        sys.stderr.write("File " + str(outfile) + " already exists!" + os.linesep)
                         sys.exit(1)
-                    raise OutFileAlreadyExistsException("File " + outfile + " already exists!")
+                    raise OutFileAlreadyExistsException("File " + str(outfile) + " already exists!")
             for s in self.workbook.sheets:
                 sheetname = s['name']
 
@@ -499,7 +501,7 @@ class Sheet:
                     for cell in self._range(rangeStr):
                         self.mergeCells[cell] = {}
                         self.mergeCells[cell]['copyFrom'] = rng[0]
-        
+
     def set_include_hyperlinks(self, hyperlinks):
         if not hyperlinks or not self.relationships or not self.relationships.relationships:
             return
@@ -615,7 +617,7 @@ class Sheet:
                             self.data = ("%f" %(float(self.data))).rstrip('0').rstrip('.')
                         elif format_type == 'float' and format[0:3] == '0.0':
                             self.data = ("%." + str(len(format.split(".")[1])) + "f") % float(self.data)
-                            
+
                     except (ValueError, OverflowError):
                         # invalid date format
                         pass
