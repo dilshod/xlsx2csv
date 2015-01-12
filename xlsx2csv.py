@@ -658,14 +658,15 @@ class Sheet:
             rng = attrs.get("ref").split(":")
             if len(rng) > 1:
                 start = re.match("^([A-Z]+)(\d+)$", rng[0])
-                end = re.match("^([A-Z]+)(\d+)$", rng[1])
-                startCol = start.group(1)
-                #startRow = int(start.group(2))
-                endCol = end.group(1)
-                #endRow = int(end.group(2))
-                self.columns_count = 0
-                for cell in self._range(startCol + "1:" + endCol + "1"):
-                    self.columns_count+= 1
+                if (start):
+                    end = re.match("^([A-Z]+)(\d+)$", rng[1])
+                    startCol = start.group(1)
+                    #startRow = int(start.group(2))
+                    endCol = end.group(1)
+                    #endRow = int(end.group(2))
+                    self.columns_count = 0
+                    for cell in self._range(startCol + "1:" + endCol + "1"):
+                        self.columns_count+= 1
 
     def handleEndElement(self, name):
         has_namespace = name.find(":") > 0
