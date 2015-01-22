@@ -685,7 +685,7 @@ class Sheet:
             if self.colNum + self.rowNum in self.mergeCells.keys():
                 if 'copyFrom' in self.mergeCells[self.colNum + self.rowNum].keys() and self.mergeCells[self.colNum + self.rowNum]['copyFrom'] == self.colNum + self.rowNum:
                     self.mergeCells[self.colNum + self.rowNum]['value'] = d
-                elif len(d) == len(''):
+                else:
                     d = self.mergeCells[self.mergeCells[self.colNum + self.rowNum]['copyFrom']]['value']
 
             self.columns[t - 1 + self.colIndex] = d
