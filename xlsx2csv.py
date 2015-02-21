@@ -21,7 +21,7 @@
 
 __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
 __license__ = "GPL-2+"
-__version__ = "0.6.1"
+__version__ = "0.7.1"
 
 import csv, datetime, zipfile, string, sys, os, re
 import xml.parsers.expat
@@ -774,9 +774,14 @@ if __name__ == "__main__":
         nargs_plus = 1
         argparser = False
 
+
+    if sys.version_info[0] == 2 and sys.version_info[1] < 5:
+        inttype = "int"
+    else:
+        inttype = int
     parser.add_argument("-a", "--all", dest="all", default=False, action="store_true",
       help="export all sheets")
-    parser.add_argument("-s", "--sheet", dest="sheetid", default=1, type=int,
+    parser.add_argument("-s", "--sheet", dest="sheetid", default=1, type=inttype,
       help="sheet number to convert")
     parser.add_argument("-n", "--sheetname", dest="sheetname", default=None,
       help="sheet name to convert")
