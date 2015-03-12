@@ -141,10 +141,12 @@ class Xlsx2csv:
 
     def __init__(self, xlsxfile, **options):
         # dateformat=None, delimiter=",", sheetdelimiter="--------", skip_empty_lines=False, escape_strings=False, cmd=False
-        options.setdefault("delimeter", ",")
+        options.setdefault("delimiter", ",")
         options.setdefault("sheetdelimiter", "--------")
+        options.setdefault("dateformat", None)
         options.setdefault("skip_empty_lines", False)
         options.setdefault("escape_strings", False)
+        options.setdefault("hyperlinks", False)
         options.setdefault("cmd", False)
         options.setdefault("include_sheet_pattern", ["^.*$"])
         options.setdefault("exclude_sheet_pattern", [])
