@@ -405,6 +405,11 @@ class SharedStrings:
             self.value+= data
 
     def handleStartElement(self, name, attrs):
+        # ignore namespace
+        i = name.find(":")
+        if i >= 0:
+            name = name[i + 1:]
+
         if name == 'si':
             self.si = True
             self.value = ""
@@ -416,6 +421,11 @@ class SharedStrings:
             self.rPh = True
 
     def handleEndElement(self, name):
+        # ignore namespace
+        i = name.find(":")
+        if i >= 0:
+            name = name[i + 1:]
+
         if name == 'si':
             self.si = False
             self.strings.append(self.value)
