@@ -623,7 +623,7 @@ class Sheet:
                                   replace("am/pm", "%p")
                                 self.data = date.strftime(str(dateformat)).strip()
                         elif format_type == 'time': # time
-                            t = int(float(self.data) * 24*60)
+                            t = int(float(self.data)%1 * 24*60)
                             self.data = "%.2i:%.2i" %(t / 60, t % 60)  #str(t / 60) + ":" + ('0' + str(t % 60))[-2:]
                         elif format_type == 'float' and ('E' in self.data or 'e' in self.data):
                             self.data = ("%f" %(float(self.data))).rstrip('0').rstrip('.')
