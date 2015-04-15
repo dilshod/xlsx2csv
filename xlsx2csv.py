@@ -628,7 +628,7 @@ class Sheet:
                         elif format_type == 'float' and ('E' in self.data or 'e' in self.data):
                             self.data = ("%f" %(float(self.data))).rstrip('0').rstrip('.')
                         elif format_type == 'float' and format[0:3] == '0.0':
-                            self.data = ("%." + str(len(format.split(".")[1])) + "f") % float(self.data)
+                            self.data = ("%." + str(len(format.split(".")[1])+(1 if ('%' in format) else 0)) + "f") % float(self.data)
 
                     except (ValueError, OverflowError):
                         # invalid date format
