@@ -344,7 +344,7 @@ class Relationships:
                 target = attrs.get('Target')
                 self.relationships[str(rId.value)] = {
                     "type" : vtype and str(vtype.value) or None,
-                    "target" : target and str(target.value) or None
+                    "target" : target and target.value.encode("utf-8") or None
                 }
 
 class Styles:
