@@ -76,7 +76,9 @@ FORMATS = {
   'm/d/yyyy' : 'date',
   'dd-mmm-yyyy' : 'date',
   'dd/mm/yyyy' : 'date',
-  'mm/dd/yy hh:mm am/pm' : 'date',
+  'mm/dd/yy h:mm am/pm' : 'date',
+  'mm/dd/yy hh:mm' : 'date',
+  'mm/dd/yyyy h:mm am/pm' : 'date',
   'mm/dd/yyyy hh:mm:ss' : 'date',
   'yyyy-mm-dd hh:mm:ss' : 'date',
 }
@@ -617,10 +619,10 @@ class Sheet:
                                 # ignore ";@", don't know what does it mean right now
                                 dateformat = format.replace(";@", ""). \
                                   replace("yyyy", "%Y").replace("yy", "%y"). \
-                                  replace("hh:mm", "%H:%M").replace("h", "%H").replace("%H%H", "%H").replace("ss", "%S"). \
+                                  replace("hh:mm", "%H:%M").replace("h", "%I").replace("%H%H", "%H").replace("ss", "%S"). \
                                   replace("d", "%e").replace("%e%e", "%d"). \
-                                  replace("mmmm", "%B").replace("mmm", "%b").replace(":mm", ":%M").replace("m", "%m").replace("%m%m", "%m"). \
-                                  replace("am/pm", "%p")
+                                  replace("am/pm", "%p"). \
+                                  replace("mmmm", "%B").replace("mmm", "%b").replace(":mm", ":%M").replace("m", "%m").replace("%m%m", "%m")
                                 self.data = date.strftime(str(dateformat)).strip()
                         elif format_type == 'time': # time
                             t = int(float(self.data)%1 * 24*60)
