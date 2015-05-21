@@ -25,6 +25,13 @@ __version__ = "0.7.2"
 
 import csv, datetime, zipfile, string, sys, os, re
 import xml.parsers.expat
+
+import dateutil
+import datetime_safe
+
+from datetime import date as real_date, time as real_time, datetime as real_datetime
+from dateutil.relativedelta import relativedelta
+
 from xml.dom import minidom
 try:
     # python2.4
@@ -571,12 +578,30 @@ class Sheet:
         else:
             self.parser.ParseFile(self.filehandle)
 
+    def to_date(self, data, correction=True):
+        import datetime_safe
+        from dateutil.parser import parse
+        try:
+            if data.count('/') == 2 or data.count(':') == 2 or data.count(' ') >= 2:
+                date = parse(data, dayfirst=True)
+                if correction:
+                    date = date - relativedelta(years=4, days = 1)
+                date = datetime_safe.new_datetime(date)
+                return date
+        except:
+            pass
+
+        return data
+
     def handleCharData(self, data):
         if self.in_cell_value:
             self.collected_string+= data
             self.data = self.collected_string
             if self.colType == "s": # shared string
                 self.data = self.sharedStrings[int(self.data)]
+                _date = self.to_date(self.data, False)
+                if _date is not self.data:
+                    self.data = _date.strftime(str(self.dateformat))
             elif self.colType == "b": # boolean
                 self.data = (int(data) == 1 and "TRUE") or (int(data) == 0 and "FALSE") or data
             elif self.s_attr:
@@ -606,12 +631,18 @@ class Sheet:
                 if format_type:
                     try:
                         if format_type == 'date': # date/time
-                            if self.workbook.date1904:
-                                date = datetime.datetime(1904, 1, 1) + datetime.timedelta(float(self.data))
-                            else:
-                                date = datetime.datetime(1899, 12, 30) + datetime.timedelta(float(self.data))
+                            try:
+                                if self.workbook.date1904:
+                                    date = datetime.datetime(1904, 1, 1) + datetime.timedelta(float(self.data))
+                                    date = date - relativedelta(years=4, days = 1)
+                                else:
+                                    date = datetime.datetime(1899, 12, 30) + datetime.timedelta(float(self.data))
+                            except:
+                                date = self.to_date(self.data)
+
                             if self.dateformat:
                                 # str(dateformat) - python2.5 bug, see: http://bugs.python.org/issue2782
+                                date = datetime_safe.new_datetime(date)
                                 self.data = date.strftime(str(self.dateformat))
                             else:
                                 # ignore ";@", don't know what does it mean right now
