@@ -620,7 +620,10 @@ class Sheet:
                         elif format_type == 'float' and ('E' in self.data or 'e' in self.data):
                             self.data = ("%f" %(float(self.data))).rstrip('0').rstrip('.')
                         elif format_type == 'float' and format[0:3] == '0.0':
-                            self.data = ("%." + str(len(format.split(".")[1])+(1 if ('%' in format) else 0)) + "f") % float(self.data)
+                            L = len(format.split(".")[1])
+                            if '%' in format:
+                                L += 1
+                            self.data = ("%." + str(L) + "f") % float(self.data)
 
                     except (ValueError, OverflowError):
                         # invalid date format
@@ -685,6 +688,8 @@ class Sheet:
             if self.hyperlinks:
                 hyperlink = self.hyperlinks.get(self.cellId)
                 if hyperlink:
+                    if self.py3:
+                        hyperlink = hyperlink.decode("utf-8")
                     d = "<a href='" + hyperlink + "'>" + d + "</a>"
             if self.colNum + self.rowNum in self.mergeCells.keys():
                 if 'copyFrom' in self.mergeCells[self.colNum + self.rowNum].keys() and self.mergeCells[self.colNum + self.rowNum]['copyFrom'] == self.colNum + self.rowNum:
