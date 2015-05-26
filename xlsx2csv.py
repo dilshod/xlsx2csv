@@ -142,7 +142,6 @@ class Xlsx2csv:
     """
 
     def __init__(self, xlsxfile, **options):
-        # dateformat=None, delimiter=",", sheetdelimiter="--------", skip_empty_lines=False, escape_strings=False
         options.setdefault("delimiter", ",")
         options.setdefault("sheetdelimiter", "--------")
         options.setdefault("dateformat", None)
@@ -440,7 +439,6 @@ class Sheet:
         self.in_row = False
         self.in_cell = False
         self.in_cell_value = False
-        self.in_cell_formula = False
 
         self.columns = {}
         self.rowNum = None
@@ -628,9 +626,6 @@ class Sheet:
                     except (ValueError, OverflowError):
                         # invalid date format
                         pass
-        # does not support it
-        #elif self.in_cell_formula:
-        #    self.formula = data
 
     def handleStartElement(self, name, attrs):
         has_namespace = name.find(":") > 0
@@ -643,14 +638,11 @@ class Sheet:
                 self.colIndex = 0
             else:
                 self.colIndex+= 1
-            #self.formula = None
             self.data = ""
             self.in_cell = True
         elif self.in_cell and ((name == 'v' or name == 'is') or (has_namespace and (name.endswith(':v') or name.endswith(':is')))):
             self.in_cell_value = True
             self.collected_string = ""
-        #elif self.in_cell and name == 'f':
-        #    self.in_cell_formula = True
         elif self.in_sheet and (name == 'row' or (has_namespace and name.endswith(':row'))) and ('r' in attrs):
             self.rowNum = attrs['r']
             self.in_row = True
@@ -668,9 +660,7 @@ class Sheet:
                 if (start):
                     end = re.match("^([A-Z]+)(\d+)$", rng[1])
                     startCol = start.group(1)
-                    #startRow = int(start.group(2))
                     endCol = end.group(1)
-                    #endRow = int(end.group(2))
                     self.columns_count = 0
                     for cell in self._range(startCol + "1:" + endCol + "1"):
                         self.columns_count+= 1
@@ -679,8 +669,6 @@ class Sheet:
         has_namespace = name.find(":") > 0
         if self.in_cell and name == 'v':
             self.in_cell_value = False
-        #elif self.in_cell and name == 'f':
-        #    self.in_cell_formula = False
         elif self.in_cell and (name == 'c' or (has_namespace and name.endswith(':c'))):
             t = 0
             for i in self.colNum: t = t*26 + ord(i) - 64
@@ -755,10 +743,7 @@ def convert_recursive(path, sheetid, outfile, kwargs):
         if os.path.isdir(fullpath):
             convert_recursive(fullpath, sheetid, outfile, kwargs)
         else:
-            # strange code, python2.4 fix
-            #outfilepath = outfile if len(outfile) > 0 else ""
             outfilepath = outfile
-
             if len(outfilepath) == 0 and fullpath.lower().endswith(".xlsx"):
                 outfilepath = fullpath[:-4] + 'csv'
 
