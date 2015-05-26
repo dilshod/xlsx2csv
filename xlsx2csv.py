@@ -142,14 +142,13 @@ class Xlsx2csv:
     """
 
     def __init__(self, xlsxfile, **options):
-        # dateformat=None, delimiter=",", sheetdelimiter="--------", skip_empty_lines=False, escape_strings=False, cmd=False
+        # dateformat=None, delimiter=",", sheetdelimiter="--------", skip_empty_lines=False, escape_strings=False
         options.setdefault("delimiter", ",")
         options.setdefault("sheetdelimiter", "--------")
         options.setdefault("dateformat", None)
         options.setdefault("skip_empty_lines", False)
         options.setdefault("escape_strings", False)
         options.setdefault("hyperlinks", False)
-        options.setdefault("cmd", False)
         options.setdefault("include_sheet_pattern", ["^.*$"])
         options.setdefault("exclude_sheet_pattern", [])
         options.setdefault("merge_cells", False)
@@ -158,9 +157,6 @@ class Xlsx2csv:
         try:
             self.ziphandle = zipfile.ZipFile(xlsxfile)
         except (zipfile.BadZipfile, IOError):
-            if self.options['cmd']:
-                sys.stderr.write("Invalid xlsx file: " + str(xlsxfile) + os.linesep)
-                sys.exit(1)
             raise InvalidXlsxFileException("Invalid xlsx file: " + str(xlsxfile))
 
         self.py3 = sys.version_info[0] == 3
@@ -187,9 +183,6 @@ class Xlsx2csv:
                 if not os.path.exists(outfile):
                     os.makedirs(outfile)
                 elif os.path.isfile(outfile):
-                    if self.options['cmd']:
-                        sys.stderr.write("File " + str(outfile) + " already exists!" + os.linesep)
-                        sys.exit(1)
                     raise OutFileAlreadyExistsException("File " + str(outfile) + " already exists!")
             for s in self.workbook.sheets:
                 sheetname = s['name']
@@ -239,9 +232,6 @@ class Xlsx2csv:
             if not sheetfile and sheetid == 1:
                 sheetfile = self._filehandle("xl/worksheets/sheet.xml")
             if not sheetfile:
-                if self.options['cmd']:
-                    sys.stderr.write("Sheet %s not found!%s" %(sheetid, os.linesep))
-                    sys.exit(1)
                 raise SheetNotFoundException("Sheet %s not found" %sheetid)
             try:
                 sheet = Sheet(self.workbook, self.shared_strings, self.styles, sheetfile)
@@ -755,7 +745,6 @@ class Sheet:
 
 
 def convert_recursive(path, sheetid, outfile, kwargs):
-    kwargs['cmd'] = False
     for name in os.listdir(path):
         fullpath = os.path.join(path, name)
         if os.path.isdir(fullpath):
@@ -841,7 +830,8 @@ if __name__ == "__main__":
     elif options.delimiter[0] == 'x':
         delimiter = chr(int(options.delimiter[1:]))
     else:
-        raise XlsxException("Invalid delimiter")
+        sys.stderr.write("error: invalid delimiter\n")
+        sys.exit(1)
 
     kwargs = {
       'delimiter' : delimiter,
@@ -850,7 +840,6 @@ if __name__ == "__main__":
       'skip_empty_lines' : options.skip_empty_lines,
       'escape_strings' : options.escape_strings,
       'hyperlinks' : options.hyperlinks,
-      'cmd' : True,
       'include_sheet_pattern' : options.include_sheet_pattern,
       'exclude_sheet_pattern' : options.exclude_sheet_pattern,
       'merge_cells' : options.merge_cells
@@ -860,14 +849,18 @@ if __name__ == "__main__":
         sheetid = 0
 
     outfile = options.outfile or sys.stdout
-    if os.path.isdir(options.infile):
-        convert_recursive(options.infile, sheetid, outfile, kwargs)
-    else:
-        xlsx2csv = Xlsx2csv(options.infile, **kwargs)
-        if options.sheetname:
-            sheetid = xlsx2csv.getSheetIdByName(options.sheetname)
-            if not sheetid:
-                raise XlsxException("Sheet '%s' not found" % options.sheetname)
 
-        xlsx2csv.convert(outfile, sheetid)
-
+    try:
+        if os.path.isdir(options.infile):
+            convert_recursive(options.infile, sheetid, outfile, kwargs)
+        else:
+            xlsx2csv = Xlsx2csv(options.infile, **kwargs)
+            if options.sheetname:
+                sheetid = xlsx2csv.getSheetIdByName(options.sheetname)
+                if not sheetid:
+                    raise XlsxException("Sheet '%s' not found" % options.sheetname)
+            xlsx2csv.convert(outfile, sheetid)
+    except XlsxException:
+        _, e, _ = sys.exc_info()
+        sys.stderr.write(str(e) + "\n")
+        sys.exit(1)
