@@ -23,7 +23,7 @@ __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
 __license__ = "GPL-2+"
 __version__ = "0.7.2"
 
-import csv, datetime, zipfile, string, sys, os, re
+import csv, datetime, zipfile, string, sys, os, re, signal
 import xml.parsers.expat
 from xml.dom import minidom
 try:
@@ -775,6 +775,9 @@ def convert_recursive(path, sheetid, outfile, kwargs):
                 print("File %s is not a zip file" %fullpath)
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+
     if "ArgumentParser" in globals():
         parser = ArgumentParser(description = "xlsx to csv converter")
         parser.add_argument('infile', metavar='xlsxfile', help="xlsx file path")
@@ -867,3 +870,4 @@ if __name__ == "__main__":
                 raise XlsxException("Sheet '%s' not found" % options.sheetname)
 
         xlsx2csv.convert(outfile, sheetid)
+
