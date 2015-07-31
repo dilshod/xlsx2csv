@@ -823,7 +823,7 @@ if __name__ == "__main__":
         sys.stderr.write("error: invalid delimiter\n")
         sys.exit(1)
 
-if options.sheetdelimiter == '--------':
+    if options.sheetdelimiter == '--------':
         sheetdelimiter = options.sheetdelimiter
     elif options.sheetdelimiter == 'ff':
         sheetdelimiter = '\f'
