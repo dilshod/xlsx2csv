@@ -835,7 +835,7 @@ if __name__ == "__main__":
 
     kwargs = {
       'delimiter' : delimiter,
-      'sheetdelimiter' : options.sheetdelimiter,
+      'sheetdelimiter' : sheetdelimiter,
       'dateformat' : options.dateformat,
       'skip_empty_lines' : options.skip_empty_lines,
       'escape_strings' : options.escape_strings,
