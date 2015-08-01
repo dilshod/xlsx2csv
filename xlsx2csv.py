@@ -792,7 +792,7 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--escape", dest='escape_strings', default=False, action="store_true",
       help="Escape \\r\\n\\t characters")
     parser.add_argument("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
-      help="sheet delimiter used to separate sheets, pass '' if you do not need delimiter, or 'x07' or 'ff' for form feed (default: '--------')")
+      help="sheet delimiter used to separate sheets, pass '' if you do not need delimiter, or 'x07' or '\\f' for form feed (default: '--------')")
     parser.add_argument("--hyperlinks", "--hyperlinks", dest="hyperlinks", action="store_true", default=False,
       help="include hyperlinks")
     parser.add_argument("-I", "--include_sheet_pattern", nargs=nargs_plus, dest="include_sheet_pattern", default="^.*$",
@@ -814,37 +814,42 @@ if __name__ == "__main__":
         options.outfile = len(args) > 1 and args[1] or None
 
     if len(options.delimiter) == 1:
-        delimiter = options.delimiter
-    elif options.delimiter == 'tab':
-        delimiter = '\t'
+        pass
+    elif options.delimiter == 'tab' or '\\t':
+        options.delimiter = '\t'
     elif options.delimiter == 'comma':
-        delimiter = ','
+        options.delimiter = ','
     elif options.delimiter[0] == 'x':
-        delimiter = chr(int(options.delimiter[1:]))
+        options.delimiter = chr(int(options.delimiter[1:]))
     else:
         sys.stderr.write("error: invalid delimiter\n")
         sys.exit(1)
         
-    if options.lineterminator == '\\n':
+    if options.lineterminator == '\n':
+        pass
+    elif options.lineterminator == '\\n':
         options.lineterminator = '\n'
     elif options.lineterminator == '\\r':
         options.lineterminator = '\r'
     elif options.lineterminator == '\\r\\n':  
         options.lineterminator = '\r\n'
-
-    if options.sheetdelimiter == '--------':
-        sheetdelimiter = options.sheetdelimiter
-    elif options.sheetdelimiter == 'ff':
-        sheetdelimiter = '\f'
-    elif options.sheetdelimiter[0] == 'x':
-        sheetdelimiter = chr(int(options.sheetdelimiter[1:]))
     else:
-        sys.stderr.write("error: invalid sheetdelimiter\n")
+        sys.stderr.write("error: invalid line terminator\n")
+        sys.exit(1)
+        
+    if options.sheetdelimiter == '--------':
+        pass
+    elif options.sheetdelimiter == '\\f':
+        options.sheetdelimiter = '\f'
+    elif options.sheetdelimiter[0] == 'x':
+        options.sheetdelimiter = chr(int(options.sheetdelimiter[1:]))
+    else:
+        sys.stderr.write("error: invalid sheet delimiter\n")
         sys.exit(1)
 
     kwargs = {
-      'delimiter' : delimiter,
-      'sheetdelimiter' : sheetdelimiter,
+      'delimiter' : options.delimiter,
+      'sheetdelimiter' : options.sheetdelimiter,
       'dateformat' : options.dateformat,
       'skip_empty_lines' : options.skip_empty_lines,
       'escape_strings' : options.escape_strings,
@@ -859,6 +864,10 @@ if __name__ == "__main__":
     if options.all:
         sheetid = 0
 
+    if sys.platform == "win32":
+        import os, msvcrt
+        msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
+        
     outfile = options.outfile or sys.stdout
     try:
         if os.path.isdir(options.infile):

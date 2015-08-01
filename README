@@ -9,7 +9,8 @@ Installation:
   or
   pip install xlsx2csv
 
-usage: xlsx2csv.py [-h] [-v] [-a] [-enc OUTPUTENCODING] [-s SHEETID]
+Usage:
+ xlsx2csv.py [-h] [-v] [-a] [-c OUTPUTENCODING] [-s SHEETID]
                    [-n SHEETNAME] [-d DELIMITER] [-l LINETERMINATOR]
                    [-f DATEFORMAT] [-i] [-e] [-p SHEETDELIMITER]
                    [--hyperlinks]
@@ -25,7 +26,7 @@ optional arguments:
   -h, --help            show this help message and exit
   -v, --version         show program's version number and exit
   -a, --all             export all sheets
-  -enc OUTPUTENCODING, --outputencoding OUTPUTENCODING
+  -c OUTPUTENCODING, --outputencoding OUTPUTENCODING
                         encoding of output csv (default: utf8)
   -s SHEETID, --sheet SHEETID
                         sheet number to convert

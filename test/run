@@ -7,16 +7,16 @@ from io import open
 
 PYTHON_VERSIONS = ["2.4", "2.7", "3.4"]
 
-def compare(case, arguments=""):
+def compare(case, arguments=[]):
     failed = False
     for pyver in PYTHON_VERSIONS:
         ext = "xlsx"
         if os.path.exists("test/%s.xlsm" % case):
             ext = "xlsm"
-        left = subprocess.check_output("python%s ./xlsx2csv.py %s test/%s.%s" %(pyver, arguments, case, ext)).decode('utf-8')
+        left = subprocess.check_output(["python%s" %pyver, "./xlsx2csv.py"] + arguments + ["test/%s.%s" %(case, ext)]).decode('utf-8').replace('\r','')
 
         f = open("test/%s.csv" %case, "r", encoding="utf-8", newline="")
-        right = f.read()
+        right = f.read().replace('\r','')
         f.close()
 
         if left != right:
@@ -29,16 +29,17 @@ def compare(case, arguments=""):
     if failed:
         sys.exit(1)
 
-compare("datetime", "-f \"%Y-%m-%d %H:%M:%S\"")
+compare("datetime", ["--dateformat=%Y-%m-%d %H:%M:%S"])
 compare("empty_row")
 compare("junk-small")
 compare("last-column-empty")
-compare("sheets", "-a")
-compare("skip_empty_lines", "-i")
+compare("sheets", ["-a"])
+compare("skip_empty_lines", ["-i"])
 compare("twolettercolumns")
 compare("xlsx2csv-test-file")
-compare("escape", "-e")
-compare("hyperlinks", "--hyperlinks")
-compare("hyperlinks_continous", "--hyperlinks")
+compare("escape", ["-e"])
+compare("hyperlinks", ["--hyperlinks"])
+compare("hyperlinks_continous", ["--hyperlinks"])
 compare("namespace")
 compare("float")
+compare("variousdelim", ["--all","--sheetdelimiter=x33", "--lineterminator=\\r", "--delimiter=\\t"])
