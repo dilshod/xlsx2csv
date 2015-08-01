@@ -23,7 +23,7 @@ __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
 __license__ = "GPL-2+"
 __version__ = "0.7.2"
 
-import csv, datetime, zipfile, string, sys, os, re, signal
+import csv, datetime, zipfile, string, sys, os, re
 import xml.parsers.expat
 from xml.dom import minidom
 try:
@@ -217,16 +217,17 @@ class Xlsx2csv:
                 if isinstance(outfile, str):
                     of = os.path.join(outfile, sheetname + '.csv')
                 elif self.options['sheetdelimiter'] and len(self.options['sheetdelimiter']):
-                    of.write(self.options['sheetdelimiter'] + " " + str(s['id']) + " - " + sheetname + os.linesep)
+                    of.write(self.options['sheetdelimiter'] + " " + str(s['id']) + " - " + sheetname + self.options['lineterminator'])
                 self._convert(s['id'], of)
 
     def _convert(self, sheetid, outfile):
         closefile = False
         if isinstance(outfile, str):
-            outfile = open(outfile, 'w+')
+            outfile = open(outfile, 'w+', encoding=self.options['outputencoding'])
             closefile = True
         try:
-            writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=self.options['delimiter'], lineterminator=os.linesep)
+            print(self.options['lineterminator'])
+            writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=self.options['delimiter'], lineterminator=self.options['lineterminator'])
             sheetfile = self._filehandle("xl/worksheets/sheet%i.xml" % sheetid)
             if not sheetfile and sheetid == 1:
                 sheetfile = self._filehandle("xl/worksheets/sheet.xml")
@@ -754,8 +755,6 @@ def convert_recursive(path, sheetid, outfile, kwargs):
                 print("File %s is not a zip file" %fullpath)
 
 if __name__ == "__main__":
-    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     if "ArgumentParser" in globals():
         parser = ArgumentParser(description = "xlsx to csv converter")
@@ -777,12 +776,16 @@ if __name__ == "__main__":
         inttype = int
     parser.add_argument("-a", "--all", dest="all", default=False, action="store_true",
       help="export all sheets")
+    parser.add_argument("-enc", "--outputencoding", dest="outputencoding", default="utf8", action="store",
+      help="encoding of output csv (default: utf8)") 
     parser.add_argument("-s", "--sheet", dest="sheetid", default=1, type=inttype,
       help="sheet number to convert")
     parser.add_argument("-n", "--sheetname", dest="sheetname", default=None,
       help="sheet name to convert")
     parser.add_argument("-d", "--delimiter", dest="delimiter", default=",",
       help="delimiter - columns delimiter in csv, 'tab' or 'x09' for a tab (default: comma ',')")
+    parser.add_argument("-l", "--lineterminator", dest="lineterminator", default=os.linesep,
+      help="line terminator - lines terminator in csv, '\\n' '\\r\\n' or '\\r' (default: os.linesep)")
     parser.add_argument("-f", "--dateformat", dest="dateformat",
       help="override date/time format (ex. %%Y/%%m/%%d)")
     parser.add_argument("-i", "--ignoreempty", dest="skip_empty_lines", default=False, action="store_true",
@@ -822,6 +825,13 @@ if __name__ == "__main__":
     else:
         sys.stderr.write("error: invalid delimiter\n")
         sys.exit(1)
+        
+    if options.lineterminator == "\\n":
+        options.lineterminator = "\n"
+    elif options.lineterminator == "\\r":
+        options.lineterminator = "\r"
+    elif options.lineterminator == "\\r\\n":  
+        options.lineterminator = "\r\n"
 
     if options.sheetdelimiter == '--------':
         sheetdelimiter = options.sheetdelimiter
@@ -842,7 +852,9 @@ if __name__ == "__main__":
       'hyperlinks' : options.hyperlinks,
       'include_sheet_pattern' : options.include_sheet_pattern,
       'exclude_sheet_pattern' : options.exclude_sheet_pattern,
-      'merge_cells' : options.merge_cells
+      'merge_cells' : options.merge_cells,
+      'outputencoding' : options.outputencoding,
+      'lineterminator' : options.lineterminator
     }
     sheetid = options.sheetid
     if options.all:
