@@ -16,7 +16,7 @@ def compare(case, arguments=""):
             ext = "xlsm"
         left = subprocess.check_output("py -%s ./xlsx2csv.py %s test/%s.%s" %(pyver, arguments, case, ext)).decode('utf-8').replace('\r','')
 
-        f = open("test/%s.csv" %case, "r", encoding="utf-8")
+        f = open("test/%s.csv" %case, "r", encoding="utf-8", newline="")
         right = f.read().replace('\r','')
         f.close()
 

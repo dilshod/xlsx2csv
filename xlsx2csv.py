@@ -223,7 +223,7 @@ class Xlsx2csv:
     def _convert(self, sheetid, outfile):
         closefile = False
         if isinstance(outfile, str):
-            outfile = open(outfile, 'w+', encoding=self.options['outputencoding'])
+            outfile = open(outfile, 'w+', encoding=self.options['outputencoding'], newline="")
             closefile = True
         try:
             writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=self.options['delimiter'], lineterminator=self.options['lineterminator'])
@@ -600,7 +600,6 @@ class Sheet:
                                 date = datetime.datetime(1904, 1, 1) + datetime.timedelta(float(self.data))
                             else:
                                 date = datetime.datetime(1899, 12, 30) + datetime.timedelta(float(self.data))
-                            #print(date)
                             if self.dateformat:
                                 # str(dateformat) - python2.5 bug, see: http://bugs.python.org/issue2782
                                 self.data = date.strftime(str(self.dateformat))

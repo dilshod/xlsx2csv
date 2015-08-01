@@ -13,10 +13,10 @@ def compare(case, arguments=""):
         ext = "xlsx"
         if os.path.exists("test/%s.xlsm" % case):
             ext = "xlsm"
-        left = subprocess.check_output("python%s ./xlsx2csv.py %s test/%s.%s" %(pyver, arguments, case, ext)).decode('utf-8').replace('\r','')
+        left = subprocess.check_output("python%s ./xlsx2csv.py %s test/%s.%s" %(pyver, arguments, case, ext)).decode('utf-8')
 
-        f = open("test/%s.csv" %case, "r", encoding="utf-8")
-        right = f.read().replace('\r','')
+        f = open("test/%s.csv" %case, "r", encoding="utf-8", newline="")
+        right = f.read()
         f.close()
 
         if left != right:
