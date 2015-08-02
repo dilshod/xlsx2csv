@@ -4,6 +4,11 @@ xlsx to csv converter (http://github.com/dilshod/xlsx2csv)
 Converts xslx files to csv format.
 Handles large XLSX files. Fast and easy to use.
 
+Supported version:
+ - 2.4
+ - 2.7
+ - 3.4
+
 Installation:
   sudo easy_install xlsx2csv
   or
@@ -27,7 +32,7 @@ optional arguments:
   -v, --version         show program's version number and exit
   -a, --all             export all sheets
   -c OUTPUTENCODING, --outputencoding OUTPUTENCODING
-                        encoding of output csv (default: utf8)
+                        encoding of output csv ** Python 3 only ** (default: utf-8)
   -s SHEETID, --sheet SHEETID
                         sheet number to convert
   -n SHEETNAME, --sheetname SHEETNAME

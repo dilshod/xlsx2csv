@@ -7,13 +7,28 @@ from io import open
 
 PYTHON_VERSIONS = ["2.4", "2.7", "3.4"]
 
+"""
+This test uses sys.stdout.
+That means this test doesn't verify:
+    - file output process
+    - differences from sys.stdout like line terminater
+"""
+
 def compare(case, arguments=[]):
     failed = False
     for pyver in PYTHON_VERSIONS:
         ext = "xlsx"
         if os.path.exists("test/%s.xlsm" % case):
             ext = "xlsm"
-        left = subprocess.check_output(["python%s" %pyver, "./xlsx2csv.py"] + arguments + ["test/%s.%s" %(case, ext)]).decode('utf-8').replace('\r','')
+
+        if os.name == 'posix':# in case of Linux
+            left = subprocess.check_output(["python%s" %pyver, "./xlsx2csv.py"] + arguments + ["test/%s.%s" %(case, ext)]).decode('utf-8').replace('\r','')
+        elif os.name == 'nt':# in case of Windows
+            # Use py.exe http://blog.python.org/2011/07/python-launcher-for-windows_11.html on Windows
+            left = subprocess.check_output(["py", "-%s" %pyver, "./xlsx2csv.py"] + arguments + ["test/%s.%s" %(case, ext)]).decode('utf-8').replace('\r','')
+        else:
+            print("os.name is unexpected: "+os.name)
+            sys.exit(1)
 
         f = open("test/%s.csv" %case, "r", encoding="utf-8", newline="")
         right = f.read().replace('\r','')

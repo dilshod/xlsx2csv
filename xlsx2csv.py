@@ -223,7 +223,13 @@ class Xlsx2csv:
     def _convert(self, sheetid, outfile):
         closefile = False
         if isinstance(outfile, str):
-            outfile = open(outfile, 'w+', encoding=self.options['outputencoding'], newline="")
+            if sys.version_info[0] == 2:
+                outfile = open(outfile, 'wb+')
+            elif sys.version_info[0] == 3:
+                outfile = open(outfile, 'w+', encoding=self.options['outputencoding'], newline="")
+            else:
+                sys.stderr.write("error: version of your python is not supported: " + str(sys.version_info) + "\n")
+                sys.exit(1)
             closefile = True
         try:
             writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=self.options['delimiter'], lineterminator=self.options['lineterminator'])
@@ -776,7 +782,7 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--all", dest="all", default=False, action="store_true",
       help="export all sheets")
     parser.add_argument("-c", "--outputencoding", dest="outputencoding", default="utf-8", action="store",
-      help="encoding of output csv (default: utf-8)") 
+      help="encoding of output csv ** Python 3 only ** (default: utf-8)") 
     parser.add_argument("-s", "--sheet", dest="sheetid", default=1, type=inttype,
       help="sheet number to convert")
     parser.add_argument("-n", "--sheetname", dest="sheetname", default=None,
@@ -863,10 +869,6 @@ if __name__ == "__main__":
     sheetid = options.sheetid
     if options.all:
         sheetid = 0
-
-    if sys.platform == "win32":
-        import os, msvcrt
-        msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
         
     outfile = options.outfile or sys.stdout
     try:
