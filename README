@@ -49,7 +49,7 @@ optional arguments:
   -e, --escape          Escape \r\n\t characters
   -p SHEETDELIMITER, --sheetdelimiter SHEETDELIMITER
                         sheet delimiter used to separate sheets, pass '' if
-                        you do not need delimiter, or 'x07' or 'ff' for form
+                        you do not need delimiter, or 'x07' or '\\f' for form
                         feed (default: '--------')
   --hyperlinks, --hyperlinks
                         include hyperlinks

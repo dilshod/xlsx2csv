@@ -869,7 +869,7 @@ if __name__ == "__main__":
     sheetid = options.sheetid
     if options.all:
         sheetid = 0
-        
+    
     outfile = options.outfile or sys.stdout
     try:
         if os.path.isdir(options.infile):
