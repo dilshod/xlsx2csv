@@ -217,16 +217,22 @@ class Xlsx2csv:
                 if isinstance(outfile, str):
                     of = os.path.join(outfile, sheetname + '.csv')
                 elif self.options['sheetdelimiter'] and len(self.options['sheetdelimiter']):
-                    of.write(self.options['sheetdelimiter'] + " " + str(s['id']) + " - " + sheetname + os.linesep)
+                    of.write(self.options['sheetdelimiter'] + " " + str(s['id']) + " - " + sheetname + self.options['lineterminator'])
                 self._convert(s['id'], of)
 
     def _convert(self, sheetid, outfile):
         closefile = False
         if isinstance(outfile, str):
-            outfile = open(outfile, 'wb+')
+            if sys.version_info[0] == 2:
+                outfile = open(outfile, 'wb+')
+            elif sys.version_info[0] == 3:
+                outfile = open(outfile, 'w+', encoding=self.options['outputencoding'], newline="")
+            else:
+                sys.stderr.write("error: version of your python is not supported: " + str(sys.version_info) + "\n")
+                sys.exit(1)
             closefile = True
         try:
-            writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=self.options['delimiter'], lineterminator=os.linesep)
+            writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=self.options['delimiter'], lineterminator=self.options['lineterminator'])
             sheetfile = self._filehandle("xl/worksheets/sheet%i.xml" % sheetid)
             if not sheetfile and sheetid == 1:
                 sheetfile = self._filehandle("xl/worksheets/sheet.xml")
@@ -574,19 +580,19 @@ class Sheet:
                 s = int(self.s_attr)
 
                 # get cell format
-                format = None
+                format_str = None
                 xfs_numfmt = self.styles.cellXfs[s]
                 if xfs_numfmt in self.styles.numFmts:
-                    format = self.styles.numFmts[xfs_numfmt]
+                    format_str = self.styles.numFmts[xfs_numfmt]
                 elif xfs_numfmt in STANDARD_FORMATS:
-                    format = STANDARD_FORMATS[xfs_numfmt]
+                    format_str = STANDARD_FORMATS[xfs_numfmt]
                 # get format type
-                if not format:
+                if not format_str:
                     return
                 format_type = None
-                if format in FORMATS:
-                    format_type = FORMATS[format]
-                elif re.match("^\d+(\.\d+)?$", self.data) and re.match(".*[hsmdyY]", format) and not re.match('.*\[.*[dmhys].*\]', format):
+                if format_str in FORMATS:
+                    format_type = FORMATS[format_str]
+                elif re.match("^\d+(\.\d+)?$", self.data) and re.match(".*[hsmdyY]", format_str) and not re.match('.*\[.*[dmhys].*\]', format_str):
                     # it must be date format
                     if float(self.data) < 1:
                         format_type = "time"
@@ -606,10 +612,10 @@ class Sheet:
                                 self.data = date.strftime(str(self.dateformat))
                             else:
                                 # ignore ";@", don't know what does it mean right now
-                                dateformat = format.replace(";@", ""). \
+                                dateformat = format_str.replace(";@", ""). \
                                   replace("yyyy", "%Y").replace("yy", "%y"). \
                                   replace("hh:mm", "%H:%M").replace("h", "%I").replace("%H%H", "%H").replace("ss", "%S"). \
-                                  replace("d", "%e").replace("%e%e", "%d"). \
+                                  replace("dd", "d").replace("d", "%d"). \
                                   replace("am/pm", "%p"). \
                                   replace("mmmm", "%B").replace("mmm", "%b").replace(":mm", ":%M").replace("m", "%m").replace("%m%m", "%m")
                                 self.data = date.strftime(str(dateformat)).strip()
@@ -618,9 +624,9 @@ class Sheet:
                             self.data = "%.2i:%.2i" %(t / 60, t % 60)  #str(t / 60) + ":" + ('0' + str(t % 60))[-2:]
                         elif format_type == 'float' and ('E' in self.data or 'e' in self.data):
                             self.data = ("%f" %(float(self.data))).rstrip('0').rstrip('.')
-                        elif format_type == 'float' and format[0:3] == '0.0':
-                            L = len(format.split(".")[1])
-                            if '%' in format:
+                        elif format_type == 'float' and format_str[0:3] == '0.0':
+                            L = len(format_str.split(".")[1])
+                            if '%' in format_str:
                                 L += 1
                             self.data = ("%." + str(L) + "f") % float(self.data)
 
@@ -766,8 +772,7 @@ if __name__ == "__main__":
     try:
         signal.signal(signal.SIGPIPE, signal.SIG_DFL)
         signal.signal(signal.SIGINT, signal.SIG_DFL)
-    except:
-        # don't know how to handle it on windows
+    except AttributeError:
         pass
 
     if "ArgumentParser" in globals():
@@ -790,12 +795,16 @@ if __name__ == "__main__":
         inttype = int
     parser.add_argument("-a", "--all", dest="all", default=False, action="store_true",
       help="export all sheets")
+    parser.add_argument("-c", "--outputencoding", dest="outputencoding", default="utf-8", action="store",
+      help="encoding of output csv ** Python 3 only ** (default: utf-8)") 
     parser.add_argument("-s", "--sheet", dest="sheetid", default=1, type=inttype,
       help="sheet number to convert")
     parser.add_argument("-n", "--sheetname", dest="sheetname", default=None,
       help="sheet name to convert")
     parser.add_argument("-d", "--delimiter", dest="delimiter", default=",",
       help="delimiter - columns delimiter in csv, 'tab' or 'x09' for a tab (default: comma ',')")
+    parser.add_argument("-l", "--lineterminator", dest="lineterminator", default="\n",
+      help="line terminator - lines terminator in csv, '\\n' '\\r\\n' or '\\r' (default: \\n)")
     parser.add_argument("-f", "--dateformat", dest="dateformat",
       help="override date/time format (ex. %%Y/%%m/%%d)")
     parser.add_argument("-i", "--ignoreempty", dest="skip_empty_lines", default=False, action="store_true",
@@ -803,7 +812,7 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--escape", dest='escape_strings', default=False, action="store_true",
       help="Escape \\r\\n\\t characters")
     parser.add_argument("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
-      help="sheet delimiter used to separate sheets, pass '' if you do not need delimiter, or 'x07' or 'ff' for form feed (default: '--------')")
+      help="sheet delimiter used to separate sheets, pass '' if you do not need delimiter, or 'x07' or '\\f' for form feed (default: '--------')")
     parser.add_argument("--hyperlinks", "--hyperlinks", dest="hyperlinks", action="store_true", default=False,
       help="include hyperlinks")
     parser.add_argument("-I", "--include_sheet_pattern", nargs=nargs_plus, dest="include_sheet_pattern", default="^.*$",
@@ -825,44 +834,57 @@ if __name__ == "__main__":
         options.outfile = len(args) > 1 and args[1] or None
 
     if len(options.delimiter) == 1:
-        delimiter = options.delimiter
-    elif options.delimiter == 'tab':
-        delimiter = '\t'
+        pass
+    elif options.delimiter == 'tab' or '\\t':
+        options.delimiter = '\t'
     elif options.delimiter == 'comma':
-        delimiter = ','
+        options.delimiter = ','
     elif options.delimiter[0] == 'x':
-        delimiter = chr(int(options.delimiter[1:]))
+        options.delimiter = chr(int(options.delimiter[1:]))
     else:
         sys.stderr.write("error: invalid delimiter\n")
         sys.exit(1)
-
-    if options.sheetdelimiter == '--------':
-        sheetdelimiter = options.sheetdelimiter
-    elif options.sheetdelimiter == 'ff':
-        sheetdelimiter = '\f'
-    elif options.sheetdelimiter[0] == 'x':
-        sheetdelimiter = chr(int(options.sheetdelimiter[1:]))
+        
+    if options.lineterminator == '\n':
+        pass
+    elif options.lineterminator == '\\n':
+        options.lineterminator = '\n'
+    elif options.lineterminator == '\\r':
+        options.lineterminator = '\r'
+    elif options.lineterminator == '\\r\\n':  
+        options.lineterminator = '\r\n'
     else:
-        sys.stderr.write("error: invalid sheetdelimiter\n")
+        sys.stderr.write("error: invalid line terminator\n")
+        sys.exit(1)
+        
+    if options.sheetdelimiter == '--------':
+        pass
+    elif options.sheetdelimiter == '\\f':
+        options.sheetdelimiter = '\f'
+    elif options.sheetdelimiter[0] == 'x':
+        options.sheetdelimiter = chr(int(options.sheetdelimiter[1:]))
+    else:
+        sys.stderr.write("error: invalid sheet delimiter\n")
         sys.exit(1)
 
     kwargs = {
-      'delimiter' : delimiter,
-      'sheetdelimiter' : sheetdelimiter,
+      'delimiter' : options.delimiter,
+      'sheetdelimiter' : options.sheetdelimiter,
       'dateformat' : options.dateformat,
       'skip_empty_lines' : options.skip_empty_lines,
       'escape_strings' : options.escape_strings,
       'hyperlinks' : options.hyperlinks,
       'include_sheet_pattern' : options.include_sheet_pattern,
       'exclude_sheet_pattern' : options.exclude_sheet_pattern,
-      'merge_cells' : options.merge_cells
+      'merge_cells' : options.merge_cells,
+      'outputencoding' : options.outputencoding,
+      'lineterminator' : options.lineterminator
     }
     sheetid = options.sheetid
     if options.all:
         sheetid = 0
-
+    
     outfile = options.outfile or sys.stdout
-
     try:
         if os.path.isdir(options.infile):
             convert_recursive(options.infile, sheetid, outfile, kwargs)

@@ -38,3 +38,7 @@ nosetests.xml
 .pydevproject
 
 *.swp
+
+# Test
+
+*.csv-test
