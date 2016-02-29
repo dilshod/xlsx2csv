@@ -441,6 +441,7 @@ class Sheet:
         self.in_cell_value = False
 
         self.columns = {}
+        self.lastRowNum = 0
         self.rowNum = None
         self.colType = None
         self.cellId = None
@@ -699,11 +700,19 @@ class Sheet:
                     l = self.spans[0] + self.spans[1] - 1
                     if len(d) < l:
                         d+= (l - len(d)) * ['']
+
+                # write empty lines
+                if not self.skip_empty_lines:
+                    for i in range(self.lastRowNum, int(self.rowNum) - 1):
+                        self.writer.writerow([])
+                    self.lastRowNum = int(self.rowNum)
+
                 # write line to csv
                 if not self.skip_empty_lines or d.count('') != len(d):
                     while len(d) < self.columns_count:
                         d.append("")
                     self.writer.writerow(d)
+                
             self.in_row = False
         elif self.in_sheet and (name == 'sheetData' or (has_namespace and name.endswith(':sheetData'))):
             self.in_sheet = False
