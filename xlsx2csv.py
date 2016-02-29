@@ -803,7 +803,7 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--escape", dest='escape_strings', default=False, action="store_true",
       help="Escape \\r\\n\\t characters")
     parser.add_argument("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
-      help="sheet delimiter used to separate sheets, pass '' if you do not need delimiter (default: '--------')")
+      help="sheet delimiter used to separate sheets, pass '' if you do not need delimiter, or 'x07' or 'ff' for form feed (default: '--------')")
     parser.add_argument("--hyperlinks", "--hyperlinks", dest="hyperlinks", action="store_true", default=False,
       help="include hyperlinks")
     parser.add_argument("-I", "--include_sheet_pattern", nargs=nargs_plus, dest="include_sheet_pattern", default="^.*$",
@@ -836,9 +836,19 @@ if __name__ == "__main__":
         sys.stderr.write("error: invalid delimiter\n")
         sys.exit(1)
 
+    if options.sheetdelimiter == '--------':
+        sheetdelimiter = options.sheetdelimiter
+    elif options.sheetdelimiter == 'ff':
+        sheetdelimiter = '\f'
+    elif options.sheetdelimiter[0] == 'x':
+        sheetdelimiter = chr(int(options.sheetdelimiter[1:]))
+    else:
+        sys.stderr.write("error: invalid sheetdelimiter\n")
+        sys.exit(1)
+
     kwargs = {
       'delimiter' : delimiter,
-      'sheetdelimiter' : options.sheetdelimiter,
+      'sheetdelimiter' : sheetdelimiter,
       'dateformat' : options.dateformat,
       'skip_empty_lines' : options.skip_empty_lines,
       'escape_strings' : options.escape_strings,
