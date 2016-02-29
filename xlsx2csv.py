@@ -229,7 +229,7 @@ class Xlsx2csv:
     def _convert(self, sheetid, outfile):
         closefile = False
         if isinstance(outfile, str):
-            outfile = open(outfile, 'w+')
+            outfile = open(outfile, 'wb+')
             closefile = True
         try:
             writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=self.options['delimiter'], lineterminator=os.linesep)
