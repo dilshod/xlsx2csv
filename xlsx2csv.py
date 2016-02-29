@@ -754,8 +754,12 @@ def convert_recursive(path, sheetid, outfile, kwargs):
                 print("File %s is not a zip file" %fullpath)
 
 if __name__ == "__main__":
-    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    try:
+        signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+    except:
+        # don't know how to handle it on windows
+        pass
 
     if "ArgumentParser" in globals():
         parser = ArgumentParser(description = "xlsx to csv converter")
