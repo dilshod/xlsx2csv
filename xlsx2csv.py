@@ -23,7 +23,7 @@ __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
 __license__ = "GPL-2+"
 __version__ = "0.7.2"
 
-import csv, datetime, zipfile, string, sys, os, re
+import csv, datetime, zipfile, string, sys, os, re, signal
 import xml.parsers.expat
 from xml.dom import minidom
 try:
@@ -76,7 +76,9 @@ FORMATS = {
   'm/d/yyyy' : 'date',
   'dd-mmm-yyyy' : 'date',
   'dd/mm/yyyy' : 'date',
-  'mm/dd/yy hh:mm am/pm' : 'date',
+  'mm/dd/yy h:mm am/pm' : 'date',
+  'mm/dd/yy hh:mm' : 'date',
+  'mm/dd/yyyy h:mm am/pm' : 'date',
   'mm/dd/yyyy hh:mm:ss' : 'date',
   'yyyy-mm-dd hh:mm:ss' : 'date',
 }
@@ -140,14 +142,12 @@ class Xlsx2csv:
     """
 
     def __init__(self, xlsxfile, **options):
-        # dateformat=None, delimiter=",", sheetdelimiter="--------", skip_empty_lines=False, escape_strings=False, cmd=False
         options.setdefault("delimiter", ",")
         options.setdefault("sheetdelimiter", "--------")
         options.setdefault("dateformat", None)
         options.setdefault("skip_empty_lines", False)
         options.setdefault("escape_strings", False)
         options.setdefault("hyperlinks", False)
-        options.setdefault("cmd", False)
         options.setdefault("include_sheet_pattern", ["^.*$"])
         options.setdefault("exclude_sheet_pattern", [])
         options.setdefault("merge_cells", False)
@@ -156,9 +156,6 @@ class Xlsx2csv:
         try:
             self.ziphandle = zipfile.ZipFile(xlsxfile)
         except (zipfile.BadZipfile, IOError):
-            if self.options['cmd']:
-                sys.stderr.write("Invalid xlsx file: " + str(xlsxfile) + os.linesep)
-                sys.exit(1)
             raise InvalidXlsxFileException("Invalid xlsx file: " + str(xlsxfile))
 
         self.py3 = sys.version_info[0] == 3
@@ -185,9 +182,6 @@ class Xlsx2csv:
                 if not os.path.exists(outfile):
                     os.makedirs(outfile)
                 elif os.path.isfile(outfile):
-                    if self.options['cmd']:
-                        sys.stderr.write("File " + str(outfile) + " already exists!" + os.linesep)
-                        sys.exit(1)
                     raise OutFileAlreadyExistsException("File " + str(outfile) + " already exists!")
             for s in self.workbook.sheets:
                 sheetname = s['name']
@@ -237,9 +231,6 @@ class Xlsx2csv:
             if not sheetfile and sheetid == 1:
                 sheetfile = self._filehandle("xl/worksheets/sheet.xml")
             if not sheetfile:
-                if self.options['cmd']:
-                    sys.stderr.write("Sheet %s not found!%s" %(sheetid, os.linesep))
-                    sys.exit(1)
                 raise SheetNotFoundException("Sheet %s not found" %sheetid)
             try:
                 sheet = Sheet(self.workbook, self.shared_strings, self.styles, sheetfile)
@@ -448,7 +439,6 @@ class Sheet:
         self.in_row = False
         self.in_cell = False
         self.in_cell_value = False
-        self.in_cell_formula = False
 
         self.columns = {}
         self.rowNum = None
@@ -617,10 +607,10 @@ class Sheet:
                                 # ignore ";@", don't know what does it mean right now
                                 dateformat = format.replace(";@", ""). \
                                   replace("yyyy", "%Y").replace("yy", "%y"). \
-                                  replace("hh:mm", "%H:%M").replace("h", "%H").replace("%H%H", "%H").replace("ss", "%S"). \
+                                  replace("hh:mm", "%H:%M").replace("h", "%I").replace("%H%H", "%H").replace("ss", "%S"). \
                                   replace("d", "%e").replace("%e%e", "%d"). \
-                                  replace("mmmm", "%B").replace("mmm", "%b").replace(":mm", ":%M").replace("m", "%m").replace("%m%m", "%m"). \
-                                  replace("am/pm", "%p")
+                                  replace("am/pm", "%p"). \
+                                  replace("mmmm", "%B").replace("mmm", "%b").replace(":mm", ":%M").replace("m", "%m").replace("%m%m", "%m")
                                 self.data = date.strftime(str(dateformat)).strip()
                         elif format_type == 'time': # time
                             t = int(float(self.data)%1 * 24*60)
@@ -628,14 +618,14 @@ class Sheet:
                         elif format_type == 'float' and ('E' in self.data or 'e' in self.data):
                             self.data = ("%f" %(float(self.data))).rstrip('0').rstrip('.')
                         elif format_type == 'float' and format[0:3] == '0.0':
-                            self.data = ("%." + str(len(format.split(".")[1])+(1 if ('%' in format) else 0)) + "f") % float(self.data)
+                            L = len(format.split(".")[1])
+                            if '%' in format:
+                                L += 1
+                            self.data = ("%." + str(L) + "f") % float(self.data)
 
                     except (ValueError, OverflowError):
                         # invalid date format
                         pass
-        # does not support it
-        #elif self.in_cell_formula:
-        #    self.formula = data
 
     def handleStartElement(self, name, attrs):
         has_namespace = name.find(":") > 0
@@ -648,14 +638,11 @@ class Sheet:
                 self.colIndex = 0
             else:
                 self.colIndex+= 1
-            #self.formula = None
             self.data = ""
             self.in_cell = True
         elif self.in_cell and ((name == 'v' or name == 'is') or (has_namespace and (name.endswith(':v') or name.endswith(':is')))):
             self.in_cell_value = True
             self.collected_string = ""
-        #elif self.in_cell and name == 'f':
-        #    self.in_cell_formula = True
         elif self.in_sheet and (name == 'row' or (has_namespace and name.endswith(':row'))) and ('r' in attrs):
             self.rowNum = attrs['r']
             self.in_row = True
@@ -673,9 +660,7 @@ class Sheet:
                 if (start):
                     end = re.match("^([A-Z]+)(\d+)$", rng[1])
                     startCol = start.group(1)
-                    #startRow = int(start.group(2))
                     endCol = end.group(1)
-                    #endRow = int(end.group(2))
                     self.columns_count = 0
                     for cell in self._range(startCol + "1:" + endCol + "1"):
                         self.columns_count+= 1
@@ -684,8 +669,6 @@ class Sheet:
         has_namespace = name.find(":") > 0
         if self.in_cell and name == 'v':
             self.in_cell_value = False
-        #elif self.in_cell and name == 'f':
-        #    self.in_cell_formula = False
         elif self.in_cell and (name == 'c' or (has_namespace and name.endswith(':c'))):
             t = 0
             for i in self.colNum: t = t*26 + ord(i) - 64
@@ -693,6 +676,8 @@ class Sheet:
             if self.hyperlinks:
                 hyperlink = self.hyperlinks.get(self.cellId)
                 if hyperlink:
+                    if self.py3:
+                        hyperlink = hyperlink.decode("utf-8")
                     d = "<a href='" + hyperlink + "'>" + d + "</a>"
             if self.colNum + self.rowNum in self.mergeCells.keys():
                 if 'copyFrom' in self.mergeCells[self.colNum + self.rowNum].keys() and self.mergeCells[self.colNum + self.rowNum]['copyFrom'] == self.colNum + self.rowNum:
@@ -753,16 +738,12 @@ class Sheet:
 
 
 def convert_recursive(path, sheetid, outfile, kwargs):
-    kwargs['cmd'] = False
     for name in os.listdir(path):
         fullpath = os.path.join(path, name)
         if os.path.isdir(fullpath):
             convert_recursive(fullpath, sheetid, outfile, kwargs)
         else:
-            # strange code, python2.4 fix
-            #outfilepath = outfile if len(outfile) > 0 else ""
             outfilepath = outfile
-
             if len(outfilepath) == 0 and fullpath.lower().endswith(".xlsx"):
                 outfilepath = fullpath[:-4] + 'csv'
 
@@ -773,6 +754,9 @@ def convert_recursive(path, sheetid, outfile, kwargs):
                 print("File %s is not a zip file" %fullpath)
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+
     if "ArgumentParser" in globals():
         parser = ArgumentParser(description = "xlsx to csv converter")
         parser.add_argument('infile', metavar='xlsxfile', help="xlsx file path")
@@ -836,7 +820,8 @@ if __name__ == "__main__":
     elif options.delimiter[0] == 'x':
         delimiter = chr(int(options.delimiter[1:]))
     else:
-        raise XlsxException("Invalid delimiter")
+        sys.stderr.write("error: invalid delimiter\n")
+        sys.exit(1)
 
     kwargs = {
       'delimiter' : delimiter,
@@ -845,7 +830,6 @@ if __name__ == "__main__":
       'skip_empty_lines' : options.skip_empty_lines,
       'escape_strings' : options.escape_strings,
       'hyperlinks' : options.hyperlinks,
-      'cmd' : True,
       'include_sheet_pattern' : options.include_sheet_pattern,
       'exclude_sheet_pattern' : options.exclude_sheet_pattern,
       'merge_cells' : options.merge_cells
@@ -855,13 +839,18 @@ if __name__ == "__main__":
         sheetid = 0
 
     outfile = options.outfile or sys.stdout
-    if os.path.isdir(options.infile):
-        convert_recursive(options.infile, sheetid, outfile, kwargs)
-    else:
-        xlsx2csv = Xlsx2csv(options.infile, **kwargs)
-        if options.sheetname:
-            sheetid = xlsx2csv.getSheetIdByName(options.sheetname)
-            if not sheetid:
-                raise XlsxException("Sheet '%s' not found" % options.sheetname)
 
-        xlsx2csv.convert(outfile, sheetid)
+    try:
+        if os.path.isdir(options.infile):
+            convert_recursive(options.infile, sheetid, outfile, kwargs)
+        else:
+            xlsx2csv = Xlsx2csv(options.infile, **kwargs)
+            if options.sheetname:
+                sheetid = xlsx2csv.getSheetIdByName(options.sheetname)
+                if not sheetid:
+                    raise XlsxException("Sheet '%s' not found" % options.sheetname)
+            xlsx2csv.convert(outfile, sheetid)
+    except XlsxException:
+        _, e, _ = sys.exc_info()
+        sys.stderr.write(str(e) + "\n")
+        sys.exit(1)
