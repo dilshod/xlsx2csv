@@ -81,6 +81,9 @@ FORMATS = {
   'mm/dd/yyyy h:mm am/pm' : 'date',
   'mm/dd/yyyy hh:mm:ss' : 'date',
   'yyyy-mm-dd hh:mm:ss' : 'date',
+  '#,##0;(#,##0)' : 'float',
+  '_(* #,##0_);_(* (#,##0);_(* "-"??_);_(@_)' : 'float',
+  '_(* #,##0.00_);_(* (#,##0.00);_(* "-"??_);_(@_)' : 'float'
 }
 STANDARD_FORMATS = {
   0 : 'general',
@@ -588,6 +591,7 @@ class Sheet:
                     format_str = STANDARD_FORMATS[xfs_numfmt]
                 # get format type
                 if not format_str:
+		    print("unknow format %s at %d" %(format_str,xfs_numfmt));
                     return
                 format_type = None
                 if format_str in FORMATS:
@@ -598,7 +602,7 @@ class Sheet:
                         format_type = "time"
                     else:
                         format_type = "date"
-                elif re.match("^\d", self.data):
+                elif re.match("^-?\d+(.\d+)?$", self.data):
                     format_type = "float"
                 if format_type:
                     try:
