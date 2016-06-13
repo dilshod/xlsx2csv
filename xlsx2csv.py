@@ -139,6 +139,7 @@ class Xlsx2csv:
        delimiter - csv columns delimiter symbol
        sheetdelimiter - sheets delimiter used when processing all sheets
        skip_empty_lines - skip empty lines
+       skip_trailing_columns - skip trailing columns
        hyperlinks - include hyperlinks
        include_sheet_pattern - only include sheets named matching given pattern
        exclude_sheet_pattern - exclude sheets named matching given pattern
@@ -149,6 +150,7 @@ class Xlsx2csv:
         options.setdefault("sheetdelimiter", "--------")
         options.setdefault("dateformat", None)
         options.setdefault("skip_empty_lines", False)
+        options.setdefault("skip_trailing_columns", True)
         options.setdefault("escape_strings", False)
         options.setdefault("hyperlinks", False)
         options.setdefault("include_sheet_pattern", ["^.*$"])
@@ -246,6 +248,7 @@ class Xlsx2csv:
                 sheet.relationships = self._parse(Relationships, "xl/worksheets/_rels/sheet%i.xml.rels" % sheetid)
                 sheet.set_dateformat(self.options['dateformat'])
                 sheet.set_skip_empty_lines(self.options['skip_empty_lines'])
+                sheet.set_skip_trailing_columns(self.options['skip_trailing_columns'])
                 sheet.set_include_hyperlinks(self.options['hyperlinks'])
                 sheet.set_merge_cells(self.options['merge_cells'])
                 sheet.to_csv(writer)
@@ -456,9 +459,11 @@ class Sheet:
         self.cellId = None
         self.s_attr = None
         self.data = None
+        self.max_columns = -1
 
         self.dateformat = None
         self.skip_empty_lines = False
+        self.skip_trailing_columns = False
 
         self.filedata = None
         self.filehandle = filehandle
@@ -474,6 +479,8 @@ class Sheet:
 
     def set_skip_empty_lines(self, skip):
         self.skip_empty_lines = skip
+    def set_skip_trailing_columns(self, skip):
+        self.skip_trailing_columns = skip
 
     def set_merge_cells(self, mergecells):
         if not mergecells:
@@ -721,6 +728,17 @@ class Sheet:
                 if not self.skip_empty_lines or d.count('') != len(d):
                     while len(d) < self.columns_count:
                         d.append("")
+
+                    if self.skip_trailing_columns:
+                      if self.max_columns < 0:
+                        self.max_columns = len(d)
+                        while (d[-1] == ""):
+                          d = d[0 : -1]
+                          self.max_columns = self.max_columns - 1
+                        # print "max len: ", self.max_columns
+                        # print d
+                      elif self.max_columns > 0:
+                        d = d[0 : self.max_columns]
                     self.writer.writerow(d)
                 
             self.in_row = False
@@ -813,6 +831,8 @@ if __name__ == "__main__":
       help="override date/time format (ex. %%Y/%%m/%%d)")
     parser.add_argument("-i", "--ignoreempty", dest="skip_empty_lines", default=False, action="store_true",
       help="skip empty lines")
+    parser.add_argument("-c", "--keepemptycolumns", dest="skip_trailing_columns", default=True, action="store_false",
+      help="keep trailing empty columns")
     parser.add_argument("-e", "--escape", dest='escape_strings', default=False, action="store_true",
       help="Escape \\r\\n\\t characters")
     parser.add_argument("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
@@ -876,6 +896,7 @@ if __name__ == "__main__":
       'sheetdelimiter' : options.sheetdelimiter,
       'dateformat' : options.dateformat,
       'skip_empty_lines' : options.skip_empty_lines,
+      'skip_trailing_columns' : options.skip_trailing_columns,
       'escape_strings' : options.escape_strings,
       'hyperlinks' : options.hyperlinks,
       'include_sheet_pattern' : options.include_sheet_pattern,
