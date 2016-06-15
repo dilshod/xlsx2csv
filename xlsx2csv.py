@@ -598,7 +598,7 @@ class Sheet:
                     format_str = STANDARD_FORMATS[xfs_numfmt]
                 # get format type
                 if not format_str:
-		    print("unknow format %s at %d" %(format_str,xfs_numfmt));
+                    print("unknown format %s at %d" %(format_str,xfs_numfmt))
                     return
                 format_type = None
                 if format_str in FORMATS:
@@ -831,7 +831,7 @@ if __name__ == "__main__":
       help="override date/time format (ex. %%Y/%%m/%%d)")
     parser.add_argument("-i", "--ignoreempty", dest="skip_empty_lines", default=False, action="store_true",
       help="skip empty lines")
-    parser.add_argument("-c", "--keepemptycolumns", dest="skip_trailing_columns", default=True, action="store_false",
+    parser.add_argument("--keepemptycolumns", dest="skip_trailing_columns", default=True, action="store_false",
       help="keep trailing empty columns")
     parser.add_argument("-e", "--escape", dest='escape_strings', default=False, action="store_true",
       help="Escape \\r\\n\\t characters")
