@@ -150,7 +150,7 @@ class Xlsx2csv:
         options.setdefault("sheetdelimiter", "--------")
         options.setdefault("dateformat", None)
         options.setdefault("skip_empty_lines", False)
-        options.setdefault("skip_trailing_columns", True)
+        options.setdefault("skip_trailing_columns", False)
         options.setdefault("escape_strings", False)
         options.setdefault("hyperlinks", False)
         options.setdefault("include_sheet_pattern", ["^.*$"])
@@ -479,6 +479,7 @@ class Sheet:
 
     def set_skip_empty_lines(self, skip):
         self.skip_empty_lines = skip
+
     def set_skip_trailing_columns(self, skip):
         self.skip_trailing_columns = skip
 
@@ -730,17 +731,15 @@ class Sheet:
                         d.append("")
 
                     if self.skip_trailing_columns:
-                      if self.max_columns < 0:
-                        self.max_columns = len(d)
-                        while (d[-1] == ""):
-                          d = d[0 : -1]
-                          self.max_columns = self.max_columns - 1
-                        # print "max len: ", self.max_columns
-                        # print d
-                      elif self.max_columns > 0:
-                        d = d[0 : self.max_columns]
+                        if self.max_columns < 0:
+                            self.max_columns = len(d)
+                            while len(d) > 0 and d[-1] == "":
+                                d = d[0:-1]
+                                self.max_columns = self.max_columns - 1
+                        elif self.max_columns > 0:
+                            d = d[0:self.max_columns]
                     self.writer.writerow(d)
-                
+
             self.in_row = False
         elif self.in_sheet and (name == 'sheetData' or (has_namespace and name.endswith(':sheetData'))):
             self.in_sheet = False
@@ -831,8 +830,8 @@ if __name__ == "__main__":
       help="override date/time format (ex. %%Y/%%m/%%d)")
     parser.add_argument("-i", "--ignoreempty", dest="skip_empty_lines", default=False, action="store_true",
       help="skip empty lines")
-    parser.add_argument("--keepemptycolumns", dest="skip_trailing_columns", default=True, action="store_false",
-      help="keep trailing empty columns")
+    parser.add_argument("--skipemptycolumns", dest="skip_trailing_columns", default=False, action="store_false",
+      help="skip trailing empty columns")
     parser.add_argument("-e", "--escape", dest='escape_strings', default=False, action="store_true",
       help="Escape \\r\\n\\t characters")
     parser.add_argument("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
