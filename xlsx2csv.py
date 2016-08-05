@@ -800,7 +800,7 @@ if __name__ == "__main__":
         parser = ArgumentParser(description = "xlsx to csv converter")
         parser.add_argument('infile', metavar='xlsxfile', help="xlsx file path")
         parser.add_argument('outfile', metavar='outfile', nargs='?', help="output csv file path")
-        parser.add_argument('-v', '--version', action='version', version='%(prog)s')
+        parser.add_argument('-v', '--version', action='version', version=__version__)
         nargs_plus = "+"
         argparser = True
     else:
