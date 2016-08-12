@@ -14,7 +14,7 @@ version = "0.7.2"
 author = "Dilshod Temirkhdojaev"
 author_email = "tdilshod@gmail.com"
 desc = "xlsx to csv converter"
-long_desc = "CherryPy is a pythonic, object-oriented HTTP framework"
+long_desc = "xlsx to csv converter"
 url = "http://github.com/dilshod/xlsx2csv"
 classifiers=[
     "Development Status :: 5 - Production/Stable",
