@@ -839,7 +839,7 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--dateformat", dest="dateformat",
       help="override date/time format (ex. %%Y/%%m/%%d)")
     parser.add_argument("-F", "--floatformat", dest="floatformat",
-      help="override float format (ex. %.15f")
+      help="override float format (ex. %%.15f")
     parser.add_argument("-i", "--ignoreempty", dest="skip_empty_lines", default=False, action="store_true",
       help="skip empty lines")
     parser.add_argument("--skipemptycolumns", dest="skip_trailing_columns", default=False, action="store_false",
