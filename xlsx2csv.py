@@ -838,7 +838,7 @@ if __name__ == "__main__":
       help="line terminator - lines terminator in csv, '\\n' '\\r\\n' or '\\r' (default: \\n)")
     parser.add_argument("-f", "--dateformat", dest="dateformat",
       help="override date/time format (ex. %%Y/%%m/%%d)")
-    parser.add_argument("-F", "--floatformat", dest="floatformat",
+    parser.add_argument("--floatformat", dest="floatformat",
       help="override float format (ex. %%.15f")
     parser.add_argument("-i", "--ignoreempty", dest="skip_empty_lines", default=False, action="store_true",
       help="skip empty lines")
