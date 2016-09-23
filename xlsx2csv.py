@@ -645,7 +645,7 @@ class Sheet:
                             self.data = ("%f" %(float(self.data))).rstrip('0').rstrip('.')
                         elif format_type == 'float' and format_str[0:3] == '0.0':
                             if self.floatformat:
-                                self.data = str(floatformat) % float(self.data)
+                                self.data = str(self.floatformat) % float(self.data)
                             else:
                                 L = len(format_str.split(".")[1])
                                 if '%' in format_str:
