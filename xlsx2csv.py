@@ -818,32 +818,32 @@ if __name__ == "__main__":
       help="export all sheets")
     parser.add_argument("-c", "--outputencoding", dest="outputencoding", default="utf-8", action="store",
       help="encoding of output csv ** Python 3 only ** (default: utf-8)") 
-    parser.add_argument("-s", "--sheet", dest="sheetid", default=1, type=inttype,
-      help="sheet number to convert")
-    parser.add_argument("-n", "--sheetname", dest="sheetname", default=None,
-      help="sheet name to convert")
     parser.add_argument("-d", "--delimiter", dest="delimiter", default=",",
       help="delimiter - columns delimiter in csv, 'tab' or 'x09' for a tab (default: comma ',')")
-    parser.add_argument("-l", "--lineterminator", dest="lineterminator", default="\n",
-      help="line terminator - lines terminator in csv, '\\n' '\\r\\n' or '\\r' (default: \\n)")
+    parser.add_argument("--hyperlinks", "--hyperlinks", dest="hyperlinks", action="store_true", default=False,
+      help="include hyperlinks")
+    parser.add_argument("-e", "--escape", dest='escape_strings', default=False, action="store_true",
+      help="Escape \\r\\n\\t characters")
+    parser.add_argument("-E", "--exclude_sheet_pattern", nargs=nargs_plus, dest="exclude_sheet_pattern", default="",
+      help="exclude sheets named matching given pattern, only effects when -a option is enabled.")
     parser.add_argument("-f", "--dateformat", dest="dateformat",
       help="override date/time format (ex. %%Y/%%m/%%d)")
+    parser.add_argument("-I", "--include_sheet_pattern", nargs=nargs_plus, dest="include_sheet_pattern", default="^.*$",
+      help="only include sheets named matching given pattern, only effects when -a option is enabled.")
+    parser.add_argument("-l", "--lineterminator", dest="lineterminator", default="\n",
+      help="line terminator - lines terminator in csv, '\\n' '\\r\\n' or '\\r' (default: \\n)")
+    parser.add_argument("-m", "--merge-cells", dest="merge_cells", default=False, action="store_true",
+      help="merge cells")
+    parser.add_argument("-n", "--sheetname", dest="sheetname", default=None,
+      help="sheet name to convert")
     parser.add_argument("-i", "--ignoreempty", dest="skip_empty_lines", default=False, action="store_true",
       help="skip empty lines")
     parser.add_argument("--skipemptycolumns", dest="skip_trailing_columns", default=False, action="store_false",
       help="skip trailing empty columns")
-    parser.add_argument("-e", "--escape", dest='escape_strings', default=False, action="store_true",
-      help="Escape \\r\\n\\t characters")
     parser.add_argument("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
       help="sheet delimiter used to separate sheets, pass '' if you do not need delimiter, or 'x07' or '\\f' for form feed (default: '--------')")
-    parser.add_argument("--hyperlinks", "--hyperlinks", dest="hyperlinks", action="store_true", default=False,
-      help="include hyperlinks")
-    parser.add_argument("-I", "--include_sheet_pattern", nargs=nargs_plus, dest="include_sheet_pattern", default="^.*$",
-      help="only include sheets named matching given pattern, only effects when -a option is enabled.")
-    parser.add_argument("-E", "--exclude_sheet_pattern", nargs=nargs_plus, dest="exclude_sheet_pattern", default="",
-      help="exclude sheets named matching given pattern, only effects when -a option is enabled.")
-    parser.add_argument("-m", "--merge-cells", dest="merge_cells", default=False, action="store_true",
-      help="merge cells")
+    parser.add_argument("-s", "--sheet", dest="sheetid", default=1, type=inttype,
+      help="sheet number to convert")
 
     if argparser:
         options = parser.parse_args()
