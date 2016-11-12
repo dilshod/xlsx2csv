@@ -5,7 +5,7 @@ import sys
 import subprocess
 from io import open
 
-PYTHON_VERSIONS = ["2.7", "3.5"]
+PYTHON_VERSIONS = ["2", "3"]
 
 """
 This test uses sys.stdout.
