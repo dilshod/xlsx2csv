@@ -156,6 +156,8 @@ class Xlsx2csv:
         options.setdefault("include_sheet_pattern", ["^.*$"])
         options.setdefault("exclude_sheet_pattern", [])
         options.setdefault("merge_cells", False)
+        options.setdefault("ignore_formats", [''])
+
 
         self.options = options
         try:
@@ -251,6 +253,7 @@ class Xlsx2csv:
                 sheet.set_skip_trailing_columns(self.options['skip_trailing_columns'])
                 sheet.set_include_hyperlinks(self.options['hyperlinks'])
                 sheet.set_merge_cells(self.options['merge_cells'])
+                sheet.set_ignore_formats(self.options['ignore_formats'])
                 sheet.to_csv(writer)
             finally:
                 sheetfile.close()
@@ -473,6 +476,7 @@ class Sheet:
 
         self.hyperlinks = {}
         self.mergeCells = {}
+        self.ignore_formats = []
 
     def set_dateformat(self, dateformat):
         self.dateformat = dateformat
@@ -482,6 +486,9 @@ class Sheet:
 
     def set_skip_trailing_columns(self, skip):
         self.skip_trailing_columns = skip
+
+    def set_ignore_formats(self, ignore_formats):
+        self.ignore_formats = ignore_formats
 
     def set_merge_cells(self, mergecells):
         if not mergecells:
@@ -612,7 +619,7 @@ class Sheet:
                         format_type = "date"
                 elif re.match("^-?\d+(.\d+)?$", self.data):
                     format_type = "float"
-                if format_type:
+                if format_type and not format_type in self.ignore_formats :
                     try:
                         if format_type == 'date': # date/time
                             if self.workbook.date1904:
@@ -830,6 +837,8 @@ if __name__ == "__main__":
       help="override date/time format (ex. %%Y/%%m/%%d)")
     parser.add_argument("-I", "--include_sheet_pattern", nargs=nargs_plus, dest="include_sheet_pattern", default="^.*$",
       help="only include sheets named matching given pattern, only effects when -a option is enabled.")
+    parser.add_argument("-if", "--ignore-formats", nargs=nargs_plus, type=str, dest="ignore_formats", default=[''],
+      help="Ignores format for specific data types.")
     parser.add_argument("-l", "--lineterminator", dest="lineterminator", default="\n",
       help="line terminator - lines terminator in csv, '\\n' '\\r\\n' or '\\r' (default: \\n)")
     parser.add_argument("-m", "--merge-cells", dest="merge_cells", default=False, action="store_true",
@@ -902,7 +911,8 @@ if __name__ == "__main__":
       'exclude_sheet_pattern' : options.exclude_sheet_pattern,
       'merge_cells' : options.merge_cells,
       'outputencoding' : options.outputencoding,
-      'lineterminator' : options.lineterminator
+      'lineterminator' : options.lineterminator,
+      'ignore_formats' : options.ignore_formats
     }
     sheetid = options.sheetid
     if options.all:
