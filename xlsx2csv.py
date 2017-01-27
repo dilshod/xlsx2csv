@@ -254,6 +254,8 @@ class Xlsx2csv:
                 sheet.set_include_hyperlinks(self.options['hyperlinks'])
                 sheet.set_merge_cells(self.options['merge_cells'])
                 sheet.set_ignore_formats(self.options['ignore_formats'])
+                if self.options['escape_strings']:
+                    sheet.filedata = re.sub(r"(<v>[^<>]+)&#10;([^<>]+</v>)", r"\1\\n\2", re.sub(r"(<v>[^<>]+)&#9;([^<>]+</v>)", r"\1\\t\2", re.sub(r"(<v>[^<>]+)&#13;([^<>]+</v>)", r"\1\\r\2", sheet.filedata)))
                 sheet.to_csv(writer)
             finally:
                 sheetfile.close()
