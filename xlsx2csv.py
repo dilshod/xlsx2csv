@@ -633,7 +633,9 @@ class Sheet:
                                 self.data = date.strftime(str(self.dateformat))
                             else:
                                 # ignore ";@", don't know what does it mean right now
-                                dateformat = format_str.replace(";@", ""). \
+                                # ignore "[$-409]" and similar format codes
+                                dateformat = re.sub(r"\[\$\-\d{1,3}\]", "", format_str, 1). \
+                                  replace(";@", ""). \
                                   replace("yyyy", "%Y").replace("yy", "%y"). \
                                   replace("hh:mm", "%H:%M").replace("h", "%I").replace("%H%H", "%H").replace("ss", "%S"). \
                                   replace("dd", "d").replace("d", "%d"). \
