@@ -254,7 +254,7 @@ class Xlsx2csv:
                 sheet.set_include_hyperlinks(self.options['hyperlinks'])
                 sheet.set_merge_cells(self.options['merge_cells'])
                 sheet.set_ignore_formats(self.options['ignore_formats'])
-                if self.options['escape_strings']:
+                if self.options['escape_strings'] and sheet.filedata:
                     sheet.filedata = re.sub(r"(<v>[^<>]+)&#10;([^<>]+</v>)", r"\1\\n\2", re.sub(r"(<v>[^<>]+)&#9;([^<>]+</v>)", r"\1\\t\2", re.sub(r"(<v>[^<>]+)&#13;([^<>]+</v>)", r"\1\\r\2", sheet.filedata)))
                 sheet.to_csv(writer)
             finally:
@@ -828,7 +828,7 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--all", dest="all", default=False, action="store_true",
       help="export all sheets")
     parser.add_argument("-c", "--outputencoding", dest="outputencoding", default="utf-8", action="store",
-      help="encoding of output csv ** Python 3 only ** (default: utf-8)") 
+      help="encoding of output csv ** Python 3 only ** (default: utf-8)")
     parser.add_argument("-d", "--delimiter", dest="delimiter", default=",",
       help="delimiter - columns delimiter in csv, 'tab' or 'x09' for a tab (default: comma ',')")
     parser.add_argument("--hyperlinks", "--hyperlinks", dest="hyperlinks", action="store_true", default=False,
@@ -880,19 +880,19 @@ if __name__ == "__main__":
     else:
         sys.stderr.write("error: invalid delimiter\n")
         sys.exit(1)
-        
+
     if options.lineterminator == '\n':
         pass
     elif options.lineterminator == '\\n':
         options.lineterminator = '\n'
     elif options.lineterminator == '\\r':
         options.lineterminator = '\r'
-    elif options.lineterminator == '\\r\\n':  
+    elif options.lineterminator == '\\r\\n':
         options.lineterminator = '\r\n'
     else:
         sys.stderr.write("error: invalid line terminator\n")
         sys.exit(1)
-        
+
     if options.sheetdelimiter == '--------':
         pass
     elif options.sheetdelimiter == '\\f':
@@ -921,7 +921,7 @@ if __name__ == "__main__":
     sheetid = options.sheetid
     if options.all:
         sheetid = 0
-    
+
     outfile = options.outfile or sys.stdout
     try:
         if os.path.isdir(options.infile):
