@@ -159,7 +159,7 @@ class Xlsx2csv:
         options.setdefault("exclude_sheet_pattern", [])
         options.setdefault("merge_cells", False)
         options.setdefault("ignore_formats", [''])
-
+        options.setdefault("lineterminator", "\n")
 
         self.options = options
         try:
@@ -175,6 +175,10 @@ class Xlsx2csv:
         self.workbook.relationships = self._parse(Relationships, "xl/_rels/workbook.xml.rels")
         if self.options['escape_strings']:
             self.shared_strings.escape_strings()
+
+    def __del__(self):
+        # make sure to close zip file, ziphandler does have a close() method
+        self.ziphandle.close()
 
     def getSheetIdByName(self, name):
         for s in self.workbook.sheets:
@@ -251,8 +255,8 @@ class Xlsx2csv:
                 sheetfile = self._filehandle("xl/worksheets/worksheet.xml")
             if not sheetfile:
                 raise SheetNotFoundException("Sheet %s not found" %sheetid)
+            sheet = Sheet(self.workbook, self.shared_strings, self.styles, sheetfile)
             try:
-                sheet = Sheet(self.workbook, self.shared_strings, self.styles, sheetfile)
                 sheet.relationships = self._parse(Relationships, "xl/worksheets/_rels/sheet%i.xml.rels" % sheetid)
                 sheet.set_dateformat(self.options['dateformat'])
                 sheet.set_floatformat(self.options['floatformat'])
@@ -266,6 +270,7 @@ class Xlsx2csv:
                 sheet.to_csv(writer)
             finally:
                 sheetfile.close()
+                sheet.close()
         finally:
             if closefile:
                 outfile.close()
@@ -487,6 +492,10 @@ class Sheet:
         self.hyperlinks = {}
         self.mergeCells = {}
         self.ignore_formats = []
+
+    def close(self):
+        # Make sure Worksheet is closed, parsers lib does not have a close() function, so simply delete it
+        self.parser = None
 
     def set_dateformat(self, dateformat):
         self.dateformat = dateformat
