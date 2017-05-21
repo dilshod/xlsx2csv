@@ -21,7 +21,7 @@
 
 __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
 __license__ = "GPL-2+"
-__version__ = "0.7.2"
+__version__ = "0.7.3"
 
 import csv, datetime, zipfile, string, sys, os, re, signal
 import xml.parsers.expat
@@ -241,8 +241,12 @@ class Xlsx2csv:
         try:
             writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=self.options['delimiter'], lineterminator=self.options['lineterminator'])
             sheetfile = self._filehandle("xl/worksheets/sheet%i.xml" % sheetid)
+            if not sheetfile:
+                sheetfile = self._filehandle("xl/worksheets/worksheet%i.xml" % sheetid)
             if not sheetfile and sheetid == 1:
                 sheetfile = self._filehandle("xl/worksheets/sheet.xml")
+            if not sheetfile and sheetid == 1:
+                sheetfile = self._filehandle("xl/worksheets/worksheet.xml")
             if not sheetfile:
                 raise SheetNotFoundException("Sheet %s not found" %sheetid)
             try:
@@ -620,6 +624,8 @@ class Sheet:
                     else:
                         format_type = "date"
                 elif re.match("^-?\d+(.\d+)?$", self.data):
+                    format_type = "float"
+                if format_type == 'date' and self.dateformat == 'float' :
                     format_type = "float"
                 if format_type and not format_type in self.ignore_formats :
                     try:
