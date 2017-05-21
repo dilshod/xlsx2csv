@@ -40,7 +40,7 @@
 
 =head1 NAME
 
-xlsx2csv - Convert xslx xml files to csv format
+xlsx2csv - Convert xlsx xml files to csv format
 
 =head1 SYNOPSIS
 

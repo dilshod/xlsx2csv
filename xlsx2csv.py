@@ -21,7 +21,7 @@
 
 __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
 __license__ = "GPL-2+"
-__version__ = "0.7.2"
+__version__ = "0.7.3"
 
 import csv, datetime, zipfile, string, sys, os, re, signal
 import xml.parsers.expat
@@ -158,6 +158,8 @@ class Xlsx2csv:
         options.setdefault("include_sheet_pattern", ["^.*$"])
         options.setdefault("exclude_sheet_pattern", [])
         options.setdefault("merge_cells", False)
+        options.setdefault("ignore_formats", [''])
+
 
         self.options = options
         try:
@@ -241,8 +243,12 @@ class Xlsx2csv:
         try:
             writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=self.options['delimiter'], lineterminator=self.options['lineterminator'])
             sheetfile = self._filehandle("xl/worksheets/sheet%i.xml" % sheetid)
+            if not sheetfile:
+                sheetfile = self._filehandle("xl/worksheets/worksheet%i.xml" % sheetid)
             if not sheetfile and sheetid == 1:
                 sheetfile = self._filehandle("xl/worksheets/sheet.xml")
+            if not sheetfile and sheetid == 1:
+                sheetfile = self._filehandle("xl/worksheets/worksheet.xml")
             if not sheetfile:
                 raise SheetNotFoundException("Sheet %s not found" %sheetid)
             try:
@@ -254,6 +260,9 @@ class Xlsx2csv:
                 sheet.set_skip_trailing_columns(self.options['skip_trailing_columns'])
                 sheet.set_include_hyperlinks(self.options['hyperlinks'])
                 sheet.set_merge_cells(self.options['merge_cells'])
+                sheet.set_ignore_formats(self.options['ignore_formats'])
+                if self.options['escape_strings']:
+                    sheet.filedata = re.sub(r"(<v>[^<>]+)&#10;([^<>]+</v>)", r"\1\\n\2", re.sub(r"(<v>[^<>]+)&#9;([^<>]+</v>)", r"\1\\t\2", re.sub(r"(<v>[^<>]+)&#13;([^<>]+</v>)", r"\1\\r\2", sheet.filedata)))
                 sheet.to_csv(writer)
             finally:
                 sheetfile.close()
@@ -477,6 +486,7 @@ class Sheet:
 
         self.hyperlinks = {}
         self.mergeCells = {}
+        self.ignore_formats = []
 
     def set_dateformat(self, dateformat):
         self.dateformat = dateformat
@@ -489,6 +499,9 @@ class Sheet:
 
     def set_skip_trailing_columns(self, skip):
         self.skip_trailing_columns = skip
+
+    def set_ignore_formats(self, ignore_formats):
+        self.ignore_formats = ignore_formats
 
     def set_merge_cells(self, mergecells):
         if not mergecells:
@@ -619,7 +632,9 @@ class Sheet:
                         format_type = "date"
                 elif re.match("^-?\d+(.\d+)?$", self.data):
                     format_type = "float"
-                if format_type:
+                if format_type == 'date' and self.dateformat == 'float' :
+                    format_type = "float"
+                if format_type and not format_type in self.ignore_formats :
                     try:
                         if format_type == 'date': # date/time
                             if self.workbook.date1904:
@@ -631,7 +646,9 @@ class Sheet:
                                 self.data = date.strftime(str(self.dateformat))
                             else:
                                 # ignore ";@", don't know what does it mean right now
-                                dateformat = format_str.replace(";@", ""). \
+                                # ignore "[$-409]" and similar format codes
+                                dateformat = re.sub(r"\[\$\-\d{1,3}\]", "", format_str, 1). \
+                                  replace(";@", ""). \
                                   replace("yyyy", "%Y").replace("yy", "%y"). \
                                   replace("hh:mm", "%H:%M").replace("h", "%I").replace("%H%H", "%H").replace("ss", "%S"). \
                                   replace("dd", "d").replace("d", "%d"). \
@@ -828,34 +845,36 @@ if __name__ == "__main__":
       help="export all sheets")
     parser.add_argument("-c", "--outputencoding", dest="outputencoding", default="utf-8", action="store",
       help="encoding of output csv ** Python 3 only ** (default: utf-8)") 
-    parser.add_argument("-s", "--sheet", dest="sheetid", default=1, type=inttype,
-      help="sheet number to convert")
-    parser.add_argument("-n", "--sheetname", dest="sheetname", default=None,
-      help="sheet name to convert")
     parser.add_argument("-d", "--delimiter", dest="delimiter", default=",",
       help="delimiter - columns delimiter in csv, 'tab' or 'x09' for a tab (default: comma ',')")
-    parser.add_argument("-l", "--lineterminator", dest="lineterminator", default="\n",
-      help="line terminator - lines terminator in csv, '\\n' '\\r\\n' or '\\r' (default: \\n)")
+    parser.add_argument("--hyperlinks", "--hyperlinks", dest="hyperlinks", action="store_true", default=False,
+      help="include hyperlinks")
+    parser.add_argument("-e", "--escape", dest='escape_strings', default=False, action="store_true",
+      help="Escape \\r\\n\\t characters")
+    parser.add_argument("-E", "--exclude_sheet_pattern", nargs=nargs_plus, dest="exclude_sheet_pattern", default="",
+      help="exclude sheets named matching given pattern, only effects when -a option is enabled.")
     parser.add_argument("-f", "--dateformat", dest="dateformat",
       help="override date/time format (ex. %%Y/%%m/%%d)")
     parser.add_argument("--floatformat", dest="floatformat",
       help="override float format (ex. %%.15f")
+    parser.add_argument("-I", "--include_sheet_pattern", nargs=nargs_plus, dest="include_sheet_pattern", default="^.*$",
+      help="only include sheets named matching given pattern, only effects when -a option is enabled.")
+    parser.add_argument("-if", "--ignore-formats", nargs=nargs_plus, type=str, dest="ignore_formats", default=[''],
+      help="Ignores format for specific data types.")
+    parser.add_argument("-l", "--lineterminator", dest="lineterminator", default="\n",
+      help="line terminator - lines terminator in csv, '\\n' '\\r\\n' or '\\r' (default: \\n)")
+    parser.add_argument("-m", "--merge-cells", dest="merge_cells", default=False, action="store_true",
+      help="merge cells")
+    parser.add_argument("-n", "--sheetname", dest="sheetname", default=None,
+      help="sheet name to convert")
     parser.add_argument("-i", "--ignoreempty", dest="skip_empty_lines", default=False, action="store_true",
       help="skip empty lines")
     parser.add_argument("--skipemptycolumns", dest="skip_trailing_columns", default=False, action="store_false",
       help="skip trailing empty columns")
-    parser.add_argument("-e", "--escape", dest='escape_strings', default=False, action="store_true",
-      help="Escape \\r\\n\\t characters")
     parser.add_argument("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
       help="sheet delimiter used to separate sheets, pass '' if you do not need delimiter, or 'x07' or '\\f' for form feed (default: '--------')")
-    parser.add_argument("--hyperlinks", "--hyperlinks", dest="hyperlinks", action="store_true", default=False,
-      help="include hyperlinks")
-    parser.add_argument("-I", "--include_sheet_pattern", nargs=nargs_plus, dest="include_sheet_pattern", default="^.*$",
-      help="only include sheets named matching given pattern, only effects when -a option is enabled.")
-    parser.add_argument("-E", "--exclude_sheet_pattern", nargs=nargs_plus, dest="exclude_sheet_pattern", default="",
-      help="exclude sheets named matching given pattern, only effects when -a option is enabled.")
-    parser.add_argument("-m", "--merge-cells", dest="merge_cells", default=False, action="store_true",
-      help="merge cells")
+    parser.add_argument("-s", "--sheet", dest="sheetid", default=1, type=inttype,
+      help="sheet number to convert")
 
     if argparser:
         options = parser.parse_args()
@@ -915,7 +934,8 @@ if __name__ == "__main__":
       'exclude_sheet_pattern' : options.exclude_sheet_pattern,
       'merge_cells' : options.merge_cells,
       'outputencoding' : options.outputencoding,
-      'lineterminator' : options.lineterminator
+      'lineterminator' : options.lineterminator,
+      'ignore_formats' : options.ignore_formats
     }
     sheetid = options.sheetid
     if options.all:
