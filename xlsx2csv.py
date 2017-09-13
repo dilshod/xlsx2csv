@@ -878,7 +878,7 @@ if __name__ == "__main__":
       help="sheet name to convert")
     parser.add_argument("-i", "--ignoreempty", dest="skip_empty_lines", default=False, action="store_true",
       help="skip empty lines")
-    parser.add_argument("--skipemptycolumns", dest="skip_trailing_columns", default=False, action="store_false",
+    parser.add_argument("--skipemptycolumns", dest="skip_trailing_columns", default=False, action="store_true",
       help="skip trailing empty columns")
     parser.add_argument("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
       help="sheet delimiter used to separate sheets, pass '' if you do not need delimiter, or 'x07' or '\\f' for form feed (default: '--------')")
