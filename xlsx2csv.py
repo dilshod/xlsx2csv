@@ -673,7 +673,7 @@ class Sheet:
                             t = int(round((float(self.data)%1) * 24*60*60, 6)) / 60 # round to microseconds
                             self.data = "%.2i:%.2i" %(t / 60, t % 60)  #str(t / 60) + ":" + ('0' + str(t % 60))[-2:]
                         elif format_type == 'float' and ('E' in self.data or 'e' in self.data):
-                            self.data = str(self.floatformat) % float(self.data)
+                            self.data = str(self.floatformat or '%f') % float(self.data)
                         # if cell is general, be aggressive about stripping any trailing 0s, decimal points, etc.
                         elif format_type == 'float' and format_str == 'general':
                             self.data = ("%f" %(float(self.data))).rstrip('0').rstrip('.')
