@@ -151,6 +151,7 @@ class Xlsx2csv:
         options.setdefault("sheetdelimiter", "--------")
         options.setdefault("dateformat", None)
         options.setdefault("floatformat", None)
+        options.setdefault("scifloat", False)
         options.setdefault("skip_empty_lines", False)
         options.setdefault("skip_trailing_columns", False)
         options.setdefault("escape_strings", False)
@@ -264,6 +265,7 @@ class Xlsx2csv:
                 sheet.set_skip_trailing_columns(self.options['skip_trailing_columns'])
                 sheet.set_include_hyperlinks(self.options['hyperlinks'])
                 sheet.set_merge_cells(self.options['merge_cells'])
+                sheet.set_scifloat(self.options['scifloat'])
                 sheet.set_ignore_formats(self.options['ignore_formats'])
                 if self.options['escape_strings'] and sheet.filedata:
                     sheet.filedata = re.sub(r"(<v>[^<>]+)&#10;([^<>]+</v>)", r"\1\\n\2", re.sub(r"(<v>[^<>]+)&#9;([^<>]+</v>)", r"\1\\t\2", re.sub(r"(<v>[^<>]+)&#13;([^<>]+</v>)", r"\1\\r\2", sheet.filedata)))
@@ -551,6 +553,9 @@ class Sheet:
                         self.mergeCells[cell] = {}
                         self.mergeCells[cell]['copyFrom'] = rng[0]
 
+    def set_scifloat(self, scifloat):
+        self.scifloat = scifloat
+
     def set_include_hyperlinks(self, hyperlinks):
         if not hyperlinks or not self.relationships or not self.relationships.relationships:
             return
@@ -639,7 +644,7 @@ class Sheet:
                         format_type = "time"
                     else:
                         format_type = "date"
-                elif re.match("^-?\d+(.\d+)?$", self.data):
+                elif re.match("^-?\d+(.\d+)?$", self.data) or (self.scifloat and re.match("^-?\d+(.\d+)?([eE]-?\d+)?$", self.data)):
                     format_type = "float"
                 if format_type == 'date' and self.dateformat == 'float' :
                     format_type = "float"
@@ -668,6 +673,9 @@ class Sheet:
                             t = int(round((float(self.data)%1) * 24*60*60, 6)) / 60 # round to microseconds
                             self.data = "%.2i:%.2i" %(t / 60, t % 60)  #str(t / 60) + ":" + ('0' + str(t % 60))[-2:]
                         elif format_type == 'float' and ('E' in self.data or 'e' in self.data):
+                            self.data = str(self.floatformat) % float(self.data)
+                        # if cell is general, be aggressive about stripping any trailing 0s, decimal points, etc.
+                        elif format_type == 'float' and format_str == 'general':
                             self.data = ("%f" %(float(self.data))).rstrip('0').rstrip('.')
                         elif format_type == 'float' and format_str[0:3] == '0.0':
                             if self.floatformat:
@@ -865,7 +873,9 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--dateformat", dest="dateformat",
       help="override date/time format (ex. %%Y/%%m/%%d)")
     parser.add_argument("--floatformat", dest="floatformat",
-      help="override float format (ex. %%.15f")
+      help="override float format (ex. %%.15f)")
+    parser.add_argument("--sci-float", dest="scifloat", default=False, action="store_true",
+      help="force scientific notation to float")
     parser.add_argument("-I", "--include_sheet_pattern", nargs=nargs_plus, dest="include_sheet_pattern", default="^.*$",
       help="only include sheets named matching given pattern, only effects when -a option is enabled.")
     parser.add_argument("-if", "--ignore-formats", nargs=nargs_plus, type=str, dest="ignore_formats", default=[''],
@@ -935,6 +945,7 @@ if __name__ == "__main__":
       'sheetdelimiter' : options.sheetdelimiter,
       'dateformat' : options.dateformat,
       'floatformat' : options.floatformat,
+      'scifloat' : options.scifloat,
       'skip_empty_lines' : options.skip_empty_lines,
       'skip_trailing_columns' : options.skip_trailing_columns,
       'escape_strings' : options.escape_strings,
