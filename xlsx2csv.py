@@ -908,7 +908,7 @@ if __name__ == "__main__":
 
     if len(options.delimiter) == 1:
         pass
-    elif options.delimiter == 'tab' or '\\t':
+    elif options.delimiter == 'tab' or options.delimiter == '\\t':
         options.delimiter = '\t'
     elif options.delimiter == 'comma':
         options.delimiter = ','
