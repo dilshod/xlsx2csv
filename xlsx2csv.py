@@ -136,6 +136,7 @@ class Xlsx2csv:
      options:
        sheetid - sheet no to convert (0 for all sheets)
        dateformat - override date/time format
+       timeformat - override time format
        floatformat - override float format
        delimiter - csv columns delimiter symbol
        sheetdelimiter - sheets delimiter used when processing all sheets
@@ -150,6 +151,7 @@ class Xlsx2csv:
         options.setdefault("delimiter", ",")
         options.setdefault("sheetdelimiter", "--------")
         options.setdefault("dateformat", None)
+        options.setdefault("timeformat", None)
         options.setdefault("floatformat", None)
         options.setdefault("scifloat", False)
         options.setdefault("skip_empty_lines", False)
@@ -260,6 +262,7 @@ class Xlsx2csv:
             try:
                 sheet.relationships = self._parse(Relationships, "xl/worksheets/_rels/sheet%i.xml.rels" % sheetid)
                 sheet.set_dateformat(self.options['dateformat'])
+                sheet.set_timeformat(self.options['timeformat'])
                 sheet.set_floatformat(self.options['floatformat'])
                 sheet.set_skip_empty_lines(self.options['skip_empty_lines'])
                 sheet.set_skip_trailing_columns(self.options['skip_trailing_columns'])
@@ -481,6 +484,7 @@ class Sheet:
         self.max_columns = -1
 
         self.dateformat = None
+        self.timeformat = "%H:%M" # default time format
         self.floatformat = None
         self.skip_empty_lines = False
         self.skip_trailing_columns = False
@@ -501,6 +505,10 @@ class Sheet:
 
     def set_dateformat(self, dateformat):
         self.dateformat = dateformat
+
+    def set_timeformat(self, timeformat):
+        if timeformat:
+            self.timeformat = timeformat
 
     def set_floatformat(self, floatformat):
         self.floatformat = floatformat
@@ -646,7 +654,7 @@ class Sheet:
                         format_type = "date"
                 elif re.match("^-?\d+(.\d+)?$", self.data) or (self.scifloat and re.match("^-?\d+(.\d+)?([eE]-?\d+)?$", self.data)):
                     format_type = "float"
-                if format_type == 'date' and self.dateformat == 'float' :
+                if format_type == 'date' and self.dateformat == 'float':
                     format_type = "float"
                 if format_type and not format_type in self.ignore_formats :
                     try:
@@ -670,8 +678,9 @@ class Sheet:
                                   replace("mmmm", "%B").replace("mmm", "%b").replace(":mm", ":%M").replace("m", "%m").replace("%m%m", "%m")
                                 self.data = date.strftime(str(dateformat)).strip()
                         elif format_type == 'time': # time
-                            t = int(round((float(self.data)%1) * 24*60*60, 6)) / 60 # round to microseconds
-                            self.data = "%.2i:%.2i" %(t / 60, t % 60)  #str(t / 60) + ":" + ('0' + str(t % 60))[-2:]
+                            t = int(round((float(self.data) % 1) * 24*60*60, 6)) # it should be in seconds
+                            d = datetime.time((t / 3600) % 24, (t / 60) % 60, t % 60)
+                            self.data = d.strftime(self.timeformat)
                         elif format_type == 'float' and ('E' in self.data or 'e' in self.data):
                             self.data = str(self.floatformat or '%f') % float(self.data)
                         # if cell is general, be aggressive about stripping any trailing 0s, decimal points, etc.
@@ -686,7 +695,7 @@ class Sheet:
                                     L += 1
                                 self.data = ("%." + str(L) + "f") % float(self.data)
 
-                    except (ValueError, OverflowError):
+                    except (ValueError, OverflowError): # this catch must be removed, it's hiding potential problems
                         # invalid date format
                         pass
 
@@ -872,6 +881,8 @@ if __name__ == "__main__":
       help="exclude sheets named matching given pattern, only effects when -a option is enabled.")
     parser.add_argument("-f", "--dateformat", dest="dateformat",
       help="override date/time format (ex. %%Y/%%m/%%d)")
+    parser.add_argument("-t", "--timeformat", dest="timeformat",
+      help="override time format (ex. %%H/%%M/%%S)")
     parser.add_argument("--floatformat", dest="floatformat",
       help="override float format (ex. %%.15f)")
     parser.add_argument("--sci-float", dest="scifloat", default=False, action="store_true",
@@ -944,6 +955,7 @@ if __name__ == "__main__":
       'delimiter' : options.delimiter,
       'sheetdelimiter' : options.sheetdelimiter,
       'dateformat' : options.dateformat,
+      'timeformat' : options.timeformat,
       'floatformat' : options.floatformat,
       'scifloat' : options.scifloat,
       'skip_empty_lines' : options.skip_empty_lines,
