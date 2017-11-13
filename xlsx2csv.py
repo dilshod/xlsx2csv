@@ -889,7 +889,7 @@ if __name__ == "__main__":
       help="force scientific notation to float")
     parser.add_argument("-I", "--include_sheet_pattern", nargs=nargs_plus, dest="include_sheet_pattern", default="^.*$",
       help="only include sheets named matching given pattern, only effects when -a option is enabled.")
-    parser.add_argument("-if", "--ignore-formats", nargs=nargs_plus, type=str, dest="ignore_formats", default=[''],
+    parser.add_argument("--ignore-formats", nargs=nargs_plus, type=str, dest="ignore_formats", default=[''],
       help="Ignores format for specific data types.")
     parser.add_argument("-l", "--lineterminator", dest="lineterminator", default="\n",
       help="line terminator - lines terminator in csv, '\\n' '\\r\\n' or '\\r' (default: \\n)")
