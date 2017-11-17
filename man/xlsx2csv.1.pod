@@ -68,10 +68,15 @@ example "%Y-%m-%d".
 
 Skip empty lines.
 
-=item B<-p DATEFORMAT, --sheetdelimiter=SHEETDELIMITER>
+=item B<-p SHEETDELIMITER, --sheetdelimiter=SHEETDELIMITER>
 
 Sheet delimiter used to separate sheets, pass "" if you don't want
 delimiters. DEfaults to "--------".
+
+=item B<-q QUOTING, --quoting=QUOTING>
+
+Output csv fields quoting. Use "none" "minimal" "nonnumeric" or "all".
+Defaults to none.
 
 =item B<-r, --recursive>
 
