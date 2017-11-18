@@ -138,6 +138,7 @@ class Xlsx2csv:
        dateformat - override date/time format
        timeformat - override time format
        floatformat - override float format
+       quoting - if and how to quote
        delimiter - csv columns delimiter symbol
        sheetdelimiter - sheets delimiter used when processing all sheets
        skip_empty_lines - skip empty lines
@@ -149,6 +150,7 @@ class Xlsx2csv:
 
     def __init__(self, xlsxfile, **options):
         options.setdefault("delimiter", ",")
+        options.setdefault("quoting", csv.QUOTE_MINIMAL)
         options.setdefault("sheetdelimiter", "--------")
         options.setdefault("dateformat", None)
         options.setdefault("timeformat", None)
@@ -248,7 +250,7 @@ class Xlsx2csv:
                 sys.exit(1)
             closefile = True
         try:
-            writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=self.options['delimiter'], lineterminator=self.options['lineterminator'])
+            writer = csv.writer(outfile, quoting=self.options['quoting'], delimiter=self.options['delimiter'], lineterminator=self.options['lineterminator'])
             sheetfile = self._filehandle("xl/worksheets/sheet%i.xml" % sheetid)
             if not sheetfile:
                 sheetfile = self._filehandle("xl/worksheets/worksheet%i.xml" % sheetid)
@@ -903,6 +905,8 @@ if __name__ == "__main__":
       help="skip trailing empty columns")
     parser.add_argument("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
       help="sheet delimiter used to separate sheets, pass '' if you do not need delimiter, or 'x07' or '\\f' for form feed (default: '--------')")
+    parser.add_argument("-q", "--quoting", dest="quoting", default="minimal",
+      help="quoting - fields quoting in csv, 'none' 'minimal' 'nonnumeric' or 'all' (default: minimal)")
     parser.add_argument("-s", "--sheet", dest="sheetid", default=1, type=inttype,
       help="sheet number to convert")
 
@@ -929,6 +933,18 @@ if __name__ == "__main__":
         sys.stderr.write("error: invalid delimiter\n")
         sys.exit(1)
 
+    if options.quoting == 'none':
+        options.quoting = csv.QUOTE_NONE
+    elif options.quoting == 'minimal':
+        options.quoting = csv.QUOTE_MINIMAL
+    elif options.quoting == 'nonnumeric':
+        options.quoting = csv.QUOTE_NONNUMERIC
+    elif options.quoting == 'all':
+        options.quoting = csv.QUOTE_ALL
+    else:
+        sys.stderr.write("error: invalid quoting\n")
+        sys.exit(1)
+
     if options.lineterminator == '\n':
         pass
     elif options.lineterminator == '\\n':
@@ -953,6 +969,7 @@ if __name__ == "__main__":
 
     kwargs = {
       'delimiter' : options.delimiter,
+      'quoting' : options.quoting,
       'sheetdelimiter' : options.sheetdelimiter,
       'dateformat' : options.dateformat,
       'timeformat' : options.timeformat,

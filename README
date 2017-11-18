@@ -51,6 +51,8 @@ optional arguments:
                         sheet delimiter used to separate sheets, pass '' if
                         you do not need delimiter, or 'x07' or '\\f' for form
                         feed (default: '--------')
+  -q QUOTING, --quoting QUOTING
+                        field quoting, 'none' 'minimal' 'nonnumeric' or 'all' (default: 'minimal')
   --hyperlinks, --hyperlinks
                         include hyperlinks
   -I INCLUDE_SHEET_PATTERN [INCLUDE_SHEET_PATTERN ...], --include_sheet_pattern INCLUDE_SHEET_PATTERN [INCLUDE_SHEET_PATTERN ...]
