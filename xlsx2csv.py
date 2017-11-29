@@ -750,8 +750,7 @@ class Sheet:
             if self.hyperlinks:
                 hyperlink = self.hyperlinks.get(self.cellId)
                 if hyperlink:
-                    if self.py3:
-                        hyperlink = hyperlink.decode("utf-8")
+                    hyperlink = hyperlink.decode("utf-8")
                     d = "<a href='" + hyperlink + "'>" + d + "</a>"
             if self.colNum + self.rowNum in self.mergeCells.keys():
                 if 'copyFrom' in self.mergeCells[self.colNum + self.rowNum].keys() and self.mergeCells[self.colNum + self.rowNum]['copyFrom'] == self.colNum + self.rowNum:
