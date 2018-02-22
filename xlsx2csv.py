@@ -960,6 +960,8 @@ if __name__ == "__main__":
 
     if options.sheetdelimiter == '--------':
         pass
+    elif options.sheetdelimiter == '':
+        pass
     elif options.sheetdelimiter == '\\f':
         options.sheetdelimiter = '\f'
     elif options.sheetdelimiter[0] == 'x':
