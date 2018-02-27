@@ -743,7 +743,7 @@ class Sheet:
 
     def handleEndElement(self, name):
         has_namespace = name.find(":") > 0
-        if self.in_cell and name == 'v':
+        if self.in_cell and ((name == 'v' or name == 'is') or (has_namespace and (name.endswith(':v') or name.endswith(':is')))):
             self.in_cell_value = False
         elif self.in_cell and (name == 'c' or (has_namespace and name.endswith(':c'))):
             t = 0
