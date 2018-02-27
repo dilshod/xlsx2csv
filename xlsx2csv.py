@@ -726,6 +726,9 @@ class Sheet:
             self.spans = None
             if 'spans' in attrs:
                 self.spans = [int(i) for i in attrs['spans'].split(":")]
+        elif name == 't':
+            # reset collected string
+            self.collected_string = ""
 
         elif name == 'sheetData' or (has_namespace and name.endswith(':sheetData')):
             self.in_sheet = True
@@ -743,7 +746,7 @@ class Sheet:
 
     def handleEndElement(self, name):
         has_namespace = name.find(":") > 0
-        if self.in_cell and ((name == 'v' or name == 'is') or (has_namespace and (name.endswith(':v') or name.endswith(':is')))):
+        if self.in_cell and ((name == 'v' or name == 'is' or name == 't') or (has_namespace and (name.endswith(':v') or name.endswith(':is')))):
             self.in_cell_value = False
         elif self.in_cell and (name == 'c' or (has_namespace and name.endswith(':c'))):
             t = 0
