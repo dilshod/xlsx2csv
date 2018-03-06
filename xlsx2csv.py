@@ -725,7 +725,7 @@ class Sheet:
             self.columns = {}
             self.spans = None
             if 'spans' in attrs:
-                self.spans = [int(i) for i in attrs['spans'].split(":")]
+                self.spans = [int(i) for i in attrs['spans'].split(" ")[-1].split(":")]
         elif name == 't':
             # reset collected string
             self.collected_string = ""
@@ -774,7 +774,7 @@ class Sheet:
                         val = val.encode("utf-8")
                     d[k] = val
                 if self.spans:
-                    l = self.spans[0] + self.spans[1] - 1
+                    l = self.spans[1] + 1
                     if len(d) < l:
                         d+= (l - len(d)) * ['']
 
