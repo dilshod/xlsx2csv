@@ -631,7 +631,7 @@ class Sheet:
                 self.data = self.sharedStrings[int(self.data)]
             elif self.colType == "b": # boolean
                 self.data = (int(data) == 1 and "TRUE") or (int(data) == 0 and "FALSE") or data
-            elif self.colType == "str":
+            elif self.colType == "str" or self.colType == "inlineStr":
                 self.data = data
             elif self.s_attr:
                 s = int(self.s_attr)
@@ -774,7 +774,7 @@ class Sheet:
                         val = val.encode("utf-8")
                     d[k] = val
                 if self.spans:
-                    l = self.spans[1] + 1
+                    l = self.spans[1]
                     if len(d) < l:
                         d+= (l - len(d)) * ['']
 
