@@ -660,7 +660,7 @@ class Sheet:
                     format_type = "float"
                 if format_type == 'date' and self.dateformat == 'float':
                     format_type = "float"
-                if format_type and not format_type in self.ignore_formats :
+                if format_type and not format_type in self.ignore_formats:
                     try:
                         if format_type == 'date': # date/time
                             if self.workbook.date1904:
@@ -698,6 +698,9 @@ class Sheet:
                                 if '%' in format_str:
                                     L += 1
                                 self.data = ("%." + str(L) + "f") % float(self.data)
+                        elif format_type == 'float':
+                            # unsupported float formatting
+                            self.data = ("%f" %(float(self.data))).rstrip('0').rstrip('.')
 
                     except (ValueError, OverflowError): # this catch must be removed, it's hiding potential problems
                         # invalid date format
