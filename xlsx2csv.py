@@ -615,6 +615,7 @@ class Sheet:
     def to_csv(self, writer):
         self.writer = writer
         self.parser = xml.parsers.expat.ParserCreate()
+        self.parser.buffer_text = True
         self.parser.CharacterDataHandler = self.handleCharData
         self.parser.StartElementHandler = self.handleStartElement
         self.parser.EndElementHandler = self.handleEndElement
