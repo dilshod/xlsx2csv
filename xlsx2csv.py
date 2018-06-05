@@ -2,7 +2,7 @@
 #
 #   Copyright information
 #
-#	Copyright (C) 2010-2012 Dilshod Temirkhodjaev <tdilshod@gmail.com>
+#	Copyright (C) 2010-2018 Dilshod Temirkhodjaev <tdilshod@gmail.com>
 #
 #   License
 #
