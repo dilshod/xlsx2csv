@@ -39,7 +39,6 @@ classifiers=[
     "Topic :: Utilities"
 ]
 data_files=[
-    ('test', []),
 ]
 
 setup(
