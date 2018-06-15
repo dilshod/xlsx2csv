@@ -1,7 +1,7 @@
 
 xlsx to csv converter (http://github.com/dilshod/xlsx2csv)
 
-Converts xslx files to csv format.
+Converts xlsx files to csv format.
 Handles large XLSX files. Fast and easy to use.
 
 Supported version:
@@ -13,6 +13,8 @@ Installation:
   sudo easy_install xlsx2csv
   or
   pip install xlsx2csv
+  
+  Also, works standalone with only the xlsx2csv.py script
 
 Usage:
  xlsx2csv.py [-h] [-v] [-a] [-c OUTPUTENCODING] [-s SHEETID]
