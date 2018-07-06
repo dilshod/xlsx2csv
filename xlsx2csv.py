@@ -501,6 +501,9 @@ class Sheet:
         self.mergeCells = {}
         self.ignore_formats = []
 
+        self.colIndex = 0
+        self.colNum = ""
+
     def close(self):
         # Make sure Worksheet is closed, parsers lib does not have a close() function, so simply delete it
         self.parser = None
@@ -726,6 +729,8 @@ class Sheet:
         elif self.in_sheet and (name == 'row' or (has_namespace and name.endswith(':row'))) and ('r' in attrs):
             self.rowNum = attrs['r']
             self.in_row = True
+            self.colIndex = 0
+            self.colNum = ""
             self.columns = {}
             self.spans = None
             if 'spans' in attrs:
