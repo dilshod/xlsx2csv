@@ -436,7 +436,7 @@ class Styles:
             for cellXfs in cellXfsElement[0].childNodes:
                 if cellXfs.nodeType != minidom.Node.ELEMENT_NODE or not (cellXfs.nodeName == "xf" or cellXfs.nodeName.endswith(":xf")):
                     continue
-                if 'numFmtId' in cellXfs._attrs:
+                if cellXfs._attrs and 'numFmtId' in cellXfs._attrs:
                     numFmtId = int(cellXfs._attrs['numFmtId'].value)
                     self.cellXfs.append(numFmtId)
                 else:
