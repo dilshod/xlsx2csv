@@ -391,8 +391,8 @@ class Styles:
                 if numFmt.nodeType == minidom.Node.ELEMENT_NODE:
                     numFmtId = int(numFmt._attrs['numFmtId'].value)
                     formatCode = numFmt._attrs['formatCode'].value.lower().replace('\\', '')
-                    self.numFmts[numFmtId] = formatCode
-        # cellXfs
+                    self.numFmts[numFmtId] = formatCode      
+
         if styles.namespaceURI:
             cellXfsElement = styles.getElementsByTagNameNS(styles.namespaceURI, "cellXfs")
         else:
@@ -403,9 +403,21 @@ class Styles:
                     continue
                 if 'numFmtId' in cellXfs._attrs:
                     numFmtId = int(cellXfs._attrs['numFmtId'].value)
+                    if self.chk_exists(numFmtId)==None and int(cellXfs._attrs['applyNumberFormat'].value):
+                      numFmtId = int(cellXfs._attrs['applyNumberFormat'].value)
                     self.cellXfs.append(numFmtId)
                 else:
                     self.cellXfs.append(None)
+
+    # When Unknown Numformat ID assign applyNumberFormat
+    def chk_exists(self, numFmtId):
+      xfs_numfmt = numFmtId
+      format_str = None
+      if xfs_numfmt in self.numFmts:
+          format_str = self.numFmts[xfs_numfmt]
+      elif xfs_numfmt in STANDARD_FORMATS:
+          format_str = STANDARD_FORMATS[xfs_numfmt]      
+      return format_str
 
 class SharedStrings:
     def __init__(self):
@@ -647,6 +659,7 @@ class Sheet:
                     format_str = self.styles.numFmts[xfs_numfmt]
                 elif xfs_numfmt in STANDARD_FORMATS:
                     format_str = STANDARD_FORMATS[xfs_numfmt]
+
                 # get format type
                 if not format_str:
                     print("unknown format %s at %d" %(format_str,xfs_numfmt))
