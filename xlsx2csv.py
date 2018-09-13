@@ -115,6 +115,13 @@ STANDARD_FORMATS = {
   48 : '##0.0e+0',
   49 : '@',
 }
+CONTENT_TYPES = {
+  'shared_strings',
+  'styles',
+  'workbook',
+  'worksheet',
+  'relationships',
+}
 
 class XlsxException(Exception):
     pass
@@ -174,10 +181,11 @@ class Xlsx2csv:
 
         self.py3 = sys.version_info[0] == 3
 
-        self.shared_strings = self._parse(SharedStrings, "xl/sharedStrings.xml")
-        self.styles = self._parse(Styles, "xl/styles.xml")
-        self.workbook = self._parse(Workbook, "xl/workbook.xml")
-        self.workbook.relationships = self._parse(Relationships, "xl/_rels/workbook.xml.rels")
+        self.content_types = self._parse(ContentTypes, "/[Content_Types].xml")
+        self.shared_strings = self._parse(SharedStrings, self.content_types.types["shared_strings"])
+        self.styles = self._parse(Styles, self.content_types.types["styles"])
+        self.workbook = self._parse(Workbook, self.content_types.types["workbook"])
+        self.workbook.relationships = self._parse(Relationships, self.content_types.types["relationships"])
         if self.options['escape_strings']:
             self.shared_strings.escape_strings()
 
@@ -251,18 +259,16 @@ class Xlsx2csv:
             closefile = True
         try:
             writer = csv.writer(outfile, quoting=self.options['quoting'], delimiter=self.options['delimiter'], lineterminator=self.options['lineterminator'])
-            sheetfile = self._filehandle("xl/worksheets/sheet%i.xml" % sheetid)
+            sheetfile = self._filehandle("/xl/worksheets/sheet%i.xml" % sheetid)
             if not sheetfile:
-                sheetfile = self._filehandle("xl/worksheets/worksheet%i.xml" % sheetid)
+                sheetfile = self._filehandle("/xl/worksheets/worksheet%i.xml" % sheetid)
             if not sheetfile and sheetid == 1:
-                sheetfile = self._filehandle("xl/worksheets/sheet.xml")
-            if not sheetfile and sheetid == 1:
-                sheetfile = self._filehandle("xl/worksheets/worksheet.xml")
+                sheetfile = self._filehandle(self.content_types.types["worksheet"])
             if not sheetfile:
                 raise SheetNotFoundException("Sheet %s not found" %sheetid)
             sheet = Sheet(self.workbook, self.shared_strings, self.styles, sheetfile)
             try:
-                sheet.relationships = self._parse(Relationships, "xl/worksheets/_rels/sheet%i.xml.rels" % sheetid)
+                sheet.relationships = self._parse(Relationships, "/xl/worksheets/_rels/sheet%i.xml.rels" % sheetid)
                 sheet.set_dateformat(self.options['dateformat'])
                 sheet.set_timeformat(self.options['timeformat'])
                 sheet.set_floatformat(self.options['floatformat'])
@@ -283,7 +289,7 @@ class Xlsx2csv:
                 outfile.close()
 
     def _filehandle(self, filename):
-        for name in filter(lambda f: f.lower() == filename.lower(), self.ziphandle.namelist()):
+        for name in filter(lambda f: filename and f.lower() == filename.lower()[1:], self.ziphandle.namelist()):
             # python2.4 fix
             if not hasattr(self.ziphandle, "open"):
                 return StringIO(self.ziphandle.read(name))
@@ -347,6 +353,35 @@ class Workbook:
                 else: id = int(attrs['r:id'].value[3:])
             self.sheets.append({'name': name, 'id': id})
 
+class ContentTypes:
+    def __init__(self):
+        self.types = {}
+        for type in CONTENT_TYPES:
+            self.types[type] = None
+
+    def parse(self, filehandle):
+        types = minidom.parseString(filehandle.read()).firstChild
+        if not types:
+            return
+        if types.namespaceURI:
+            overrideNodes = types.getElementsByTagNameNS(types.namespaceURI, "Override")
+        else:
+            overrideNodes = types.getElementsByTagName("Override")
+        for override in overrideNodes:
+            attrs = override._attrs
+            type = attrs.get('ContentType').value
+            name = attrs.get('PartName').value
+            if type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml":
+                self.types["workbook"] = name
+            elif type == "application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml":
+                self.types["styles"] = name
+            elif type == "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml":
+                self.types["worksheet"] = name
+            elif type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml":
+                self.types["shared_strings"] = name
+            elif type == "application/vnd.openxmlformats-package.relationships+xml":
+                self.types["relationships"] = name
+
 class Relationships:
     def __init__(self):
         self.relationships = {}
@@ -401,7 +436,7 @@ class Styles:
             for cellXfs in cellXfsElement[0].childNodes:
                 if cellXfs.nodeType != minidom.Node.ELEMENT_NODE or not (cellXfs.nodeName == "xf" or cellXfs.nodeName.endswith(":xf")):
                     continue
-                if 'numFmtId' in cellXfs._attrs:
+                if cellXfs._attrs and 'numFmtId' in cellXfs._attrs:
                     numFmtId = int(cellXfs._attrs['numFmtId'].value)
                     if self.chk_exists(numFmtId)==None:
                       numFmtId = int(cellXfs._attrs['applyNumberFormat'].value)
@@ -653,7 +688,7 @@ class Sheet:
                 s = int(self.s_attr)
 
                 # get cell format
-                format_str = None
+                format_str = "general"
                 xfs_numfmt = self.styles.cellXfs[s]
                 if xfs_numfmt in self.styles.numFmts:
                     format_str = self.styles.numFmts[xfs_numfmt]
@@ -664,6 +699,7 @@ class Sheet:
                 if not format_str:
                     print("unknown format %s at %d" %(format_str,xfs_numfmt))
                     return
+
                 format_type = None
                 if format_str in FORMATS:
                     format_type = FORMATS[format_str]
