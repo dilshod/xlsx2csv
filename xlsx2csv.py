@@ -403,7 +403,7 @@ class Styles:
                     continue
                 if 'numFmtId' in cellXfs._attrs:
                     numFmtId = int(cellXfs._attrs['numFmtId'].value)
-                    if self.chk_exists(numFmtId)==None and int(cellXfs._attrs['applyNumberFormat'].value):
+                    if self.chk_exists(numFmtId)==None:
                       numFmtId = int(cellXfs._attrs['applyNumberFormat'].value)
                     self.cellXfs.append(numFmtId)
                 else:
@@ -689,11 +689,12 @@ class Sheet:
                                 self.data = date.strftime(str(self.dateformat))
                             else:
                                 # ignore ";@", don't know what does it mean right now
-                                # ignore "[$-409]" and similar format codes
-                                dateformat = re.sub(r"\[\$\-\d{1,3}\]", "", format_str, 1). \
+                                # ignore "[$-409], [$-f409], [$-16001]" and similar format codes
+                                dateformat = re.sub(r"\[\$\-[A-z0-9]*\]", "", format_str, 1). \
                                   replace(";@", ""). \
                                   replace("yyyy", "%Y").replace("yy", "%y"). \
                                   replace("hh:mm", "%H:%M").replace("h", "%I").replace("%H%H", "%H").replace("ss", "%S"). \
+                                  replace("dddd", "d"). \
                                   replace("dd", "d").replace("d", "%d"). \
                                   replace("am/pm", "%p"). \
                                   replace("mmmm", "%B").replace("mmm", "%b").replace(":mm", ":%M").replace("m", "%m").replace("%m%m", "%m")
