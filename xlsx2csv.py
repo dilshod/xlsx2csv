@@ -701,7 +701,7 @@ class Sheet:
                                 self.data = date.strftime(str(dateformat)).strip()
                         elif format_type == 'time': # time
                             t = int(round((float(self.data) % 1) * 24*60*60, 6)) # it should be in seconds
-                            d = datetime.time((t / 3600) % 24, (t / 60) % 60, t % 60)
+                            d = datetime.time((t // 3600) % 24, (t // 60) % 60, t % 60)
                             self.data = d.strftime(self.timeformat)
                         elif format_type == 'float' and ('E' in self.data or 'e' in self.data):
                             self.data = str(self.floatformat or '%f') % float(self.data)
