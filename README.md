@@ -1,22 +1,31 @@
 
-xlsx to csv converter (http://github.com/dilshod/xlsx2csv)
+# xlsx2csv
+
+> xlsx to csv converter (http://github.com/dilshod/xlsx2csv)
 
 Converts xlsx files to csv format.
 Handles large XLSX files. Fast and easy to use.
 
-Supported version:
+## Supported version:
  - 2.4
  - 2.7
  - 3.4
 
-Installation:
-  sudo easy_install xlsx2csv
-  or
-  pip install xlsx2csv
-  
-  Also, works standalone with only the xlsx2csv.py script
+## Installation:
 
-Usage:
+```sh
+sudo easy_install xlsx2csv
+```
+  or
+
+```sh
+pip install xlsx2csv
+```
+
+
+  Also, works standalone with only the *xlsx2csv.py* script
+
+**Usage:**
  xlsx2csv.py [-h] [-v] [-a] [-c OUTPUTENCODING] [-s SHEETID]
                    [-n SHEETNAME] [-d DELIMITER] [-l LINETERMINATOR]
                    [-f DATEFORMAT] [--floatformat FLOATFORMAT]
@@ -26,11 +35,11 @@ Usage:
                    [-E EXCLUDE_SHEET_PATTERN [EXCLUDE_SHEET_PATTERN ...]] [-m]
                    xlsxfile [outfile]
 
-positional arguments:
+**positional arguments:**
   xlsxfile              xlsx file path
   outfile               output csv file path
 
-optional arguments:
+**optional arguments:**
   -h, --help            show this help message and exit
   -v, --version         show program's version number and exit
   -a, --all             export all sheets
@@ -95,3 +104,12 @@ http://poi.apache.org/
 All programs in this directory and subdirectories are published under
 license GNU GPL version 2 or (at your option) any later version. For
 more information, see COPYING or visit <http://www.gnu.org/copyleft/gpl.html>.
+
+
+## Meta
+
+  Dilshod Temirkhdojaev – tdilshod@gmail.com
+
+Distributed under the GNU GENERAL PUBLIC LICENSE. See ``LICENSE`` for more information.
+
+[https://github.com/dilshod](https://github.com/dilshod)
