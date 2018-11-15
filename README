@@ -19,7 +19,8 @@ Installation:
 Usage:
  xlsx2csv.py [-h] [-v] [-a] [-c OUTPUTENCODING] [-s SHEETID]
                    [-n SHEETNAME] [-d DELIMITER] [-l LINETERMINATOR]
-                   [-f DATEFORMAT] [-i] [-e] [-p SHEETDELIMITER]
+                   [-f DATEFORMAT] [--floatformat FLOATFORMAT]
+                   [-i] [-e] [-p SHEETDELIMITER]
                    [--hyperlinks]
                    [-I INCLUDE_SHEET_PATTERN [INCLUDE_SHEET_PATTERN ...]]
                    [-E EXCLUDE_SHEET_PATTERN [EXCLUDE_SHEET_PATTERN ...]] [-m]
@@ -47,6 +48,8 @@ optional arguments:
                         or '\r' (default: os.linesep)
   -f DATEFORMAT, --dateformat DATEFORMAT
                         override date/time format (ex. %Y/%m/%d)
+  --floatformat FLOATFORMAT
+                        override float format (ex. %.15f)
   -i, --ignoreempty     skip empty lines
   -e, --escape          Escape \r\n\t characters
   -p SHEETDELIMITER, --sheetdelimiter SHEETDELIMITER
