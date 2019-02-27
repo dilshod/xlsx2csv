@@ -123,6 +123,9 @@ CONTENT_TYPES = {
   'relationships',
 }
 
+DEFAULT_APP_PATH = "/xl"
+DEFAULT_WORKBOOK_PATH = DEFAULT_APP_PATH + "/workbook.xml"
+
 class XlsxException(Exception):
     pass
 
@@ -185,7 +188,8 @@ class Xlsx2csv:
         self.shared_strings = self._parse(SharedStrings, self.content_types.types["shared_strings"])
         self.styles = self._parse(Styles, self.content_types.types["styles"])
         self.workbook = self._parse(Workbook, self.content_types.types["workbook"])
-        self.workbook.relationships = self._parse(Relationships, self.content_types.types["relationships"])
+        workbook_relationships = list(filter(lambda r: "book" in r, self.content_types.types["relationships"]))[0]
+        self.workbook.relationships = self._parse(Relationships, workbook_relationships)
         if self.options['escape_strings']:
             self.shared_strings.escape_strings()
 
@@ -243,10 +247,10 @@ class Xlsx2csv:
                 if isinstance(outfile, str):
                     of = os.path.join(outfile, sheetname + '.csv')
                 elif self.options['sheetdelimiter'] and len(self.options['sheetdelimiter']):
-                    of.write(self.options['sheetdelimiter'] + " " + str(s['id']) + " - " + sheetname + self.options['lineterminator'])
-                self._convert(s['id'], of)
+                    of.write(self.options['sheetdelimiter'] + " " + str(s['index']) + " - " + sheetname + self.options['lineterminator'])
+                self._convert(s['index'], of)
 
-    def _convert(self, sheetid, outfile):
+    def _convert(self, sheet_index, outfile):
         closefile = False
         if isinstance(outfile, str):
             if sys.version_info[0] == 2:
@@ -258,17 +262,40 @@ class Xlsx2csv:
                 sys.exit(1)
             closefile = True
         try:
-            writer = csv.writer(outfile, quoting=self.options['quoting'], delimiter=self.options['delimiter'], lineterminator=self.options['lineterminator'])
-            sheetfile = self._filehandle("/xl/worksheets/sheet%i.xml" % sheetid)
-            if not sheetfile:
-                sheetfile = self._filehandle("/xl/worksheets/worksheet%i.xml" % sheetid)
-            if not sheetfile and sheetid == 1:
-                sheetfile = self._filehandle(self.content_types.types["worksheet"])
-            if not sheetfile:
-                raise SheetNotFoundException("Sheet %s not found" %sheetid)
-            sheet = Sheet(self.workbook, self.shared_strings, self.styles, sheetfile)
+            writer = csv.writer(outfile, quoting=self.options['quoting'], delimiter=self.options['delimiter'],
+                                lineterminator=self.options['lineterminator'])
+
+            sheets_filtered = list(filter(lambda s: s['index'] == sheet_index, self.workbook.sheets))
+            if len(sheets_filtered) == 0:
+                print("Sheet with index %i not found or can't be handled" % sheet_index)
+                return 1
+
+            sheet_path = None
+            # using sheet relation information
+            if 'relation_id' in sheets_filtered[0] and sheets_filtered[0]['relation_id'] is not None:
+
+                relation_id = sheets_filtered[0]['relation_id']
+                if relation_id in self.workbook.relationships.relationships and \
+                        'target' in self.workbook.relationships.relationships[relation_id]:
+
+                    relationship = self.workbook.relationships.relationships[relation_id]
+                    sheet_path = "/xl/" + relationship['target']
+
+            if sheet_path is None:
+                sheet_path = "/xl/worksheets/sheet%i.xml" % sheet_index
+            if sheet_path is None:
+                sheet_path = "/xl/worksheets/worksheet%i.xml" % sheet_index
+            if sheet_path is None and sheet_index == 1:
+                sheet_path = self.content_types.types["worksheet"]
+            if sheet_path is None:
+                raise SheetNotFoundException("Sheet %i not found" % sheet_index)
+            sheet_file = self._filehandle(sheet_path)
+            sheet = Sheet(self.workbook, self.shared_strings, self.styles, sheet_file)
             try:
-                sheet.relationships = self._parse(Relationships, "/xl/worksheets/_rels/sheet%i.xml.rels" % sheetid)
+                relationships_path = os.path.join(os.path.dirname(sheet_path),
+                                                  "_rels",
+                                                  os.path.basename(sheet_path)+".rels")
+                sheet.relationships = self._parse(Relationships, relationships_path)
                 sheet.set_dateformat(self.options['dateformat'])
                 sheet.set_timeformat(self.options['timeformat'])
                 sheet.set_floatformat(self.options['floatformat'])
@@ -282,7 +309,7 @@ class Xlsx2csv:
                     sheet.filedata = re.sub(r"(<v>[^<>]+)&#10;([^<>]+</v>)", r"\1\\n\2", re.sub(r"(<v>[^<>]+)&#9;([^<>]+</v>)", r"\1\\t\2", re.sub(r"(<v>[^<>]+)&#13;([^<>]+</v>)", r"\1\\r\2", sheet.filedata)))
                 sheet.to_csv(writer)
             finally:
-                sheetfile.close()
+                sheet_file.close()
                 sheet.close()
         finally:
             if closefile:
@@ -306,7 +333,7 @@ class Xlsx2csv:
 
 class Workbook:
     def __init__(self):
-        self.sheets = []
+        self.sheets = list()
         self.date1904 = False
 
     def parse(self, filehandle):
@@ -316,7 +343,7 @@ class Workbook:
         else:
             fileVersion = workbookDoc.firstChild.getElementsByTagName("fileVersion")
         if len(fileVersion) == 0:
-            self.appName = 'unknown'
+            self.appName = DEFAULT_APP_PATH
         else:
             try:
                 if workbookDoc.firstChild.namespaceURI:
@@ -325,7 +352,7 @@ class Workbook:
                     self.appName = workbookDoc.firstChild.getElementsByTagName("fileVersion")[0]._attrs['appName'].value
             except KeyError:
                 # no app name
-                self.appName = 'unknown'
+                self.appName = DEFAULT_APP_PATH
         try:
             if workbookDoc.firstChild.namespaceURI:
                 self.date1904 = workbookDoc.firstChild.getElementsByTagNameNS(workbookDoc.firstChild.namespaceURI, "workbookPr")[0]._attrs['date1904'].value.lower().strip() != "false"
@@ -342,16 +369,13 @@ class Workbook:
             sheetNodes = sheets.getElementsByTagNameNS(workbookDoc.firstChild.namespaceURI, "sheet")
         else:
             sheetNodes = sheets.getElementsByTagName("sheet")
-        for sheetNode in sheetNodes:
+        for i, sheetNode in enumerate(sheetNodes):
             attrs = sheetNode._attrs
             name = attrs["name"].value
-            if self.appName == 'xl' and len(attrs["r:id"].value) > 2:
-                if 'r:id' in attrs: id = int(attrs["r:id"].value[3:])
-                else: id = int(attrs['sheetId'].value)
-            else:
-                if 'sheetId' in attrs: id = int(attrs["sheetId"].value)
-                else: id = int(attrs['r:id'].value[3:])
-            self.sheets.append({'name': name, 'id': id})
+            relation_id = None
+            if 'r:id' in attrs:
+                relation_id = attrs['r:id'].value
+            self.sheets.append({'name': name, 'relation_id': relation_id, 'index': i + 1})
 
 class ContentTypes:
     def __init__(self):
@@ -376,11 +400,20 @@ class ContentTypes:
             elif type == "application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml":
                 self.types["styles"] = name
             elif type == "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml":
+                # BUG preserved only last sheet
                 self.types["worksheet"] = name
             elif type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml":
                 self.types["shared_strings"] = name
             elif type == "application/vnd.openxmlformats-package.relationships+xml":
-                self.types["relationships"] = name
+                if self.types["relationships"] is None:
+                    self.types["relationships"] = list()
+                self.types["relationships"].append(name)
+
+        if self.types["workbook"] is None:
+            self.types["workbook"] = DEFAULT_WORKBOOK_PATH
+        if self.types["relationships"] is None:
+            self.types["relationships"] = [os.path.dirname(self.types["workbook"]) + "/_rels/" + \
+                                           os.path.basename(self.types["workbook"]) + ".rels"]
 
 class Relationships:
     def __init__(self):
@@ -406,7 +439,7 @@ class Relationships:
                 target = attrs.get('Target')
                 self.relationships[str(rId.value)] = {
                     "type" : vtype and str(vtype.value) or None,
-                    "target" : target and target.value.encode("utf-8") or None
+                    "target" : target and str(target.value) or None
                 }
 
 class Styles:
@@ -814,7 +847,6 @@ class Sheet:
             if self.hyperlinks:
                 hyperlink = self.hyperlinks.get(self.cellId)
                 if hyperlink:
-                    hyperlink = hyperlink.decode("utf-8")
                     d = "<a href='" + hyperlink + "'>" + d + "</a>"
             if self.colNum + self.rowNum in self.mergeCells.keys():
                 if 'copyFrom' in self.mergeCells[self.colNum + self.rowNum].keys() and self.mergeCells[self.colNum + self.rowNum]['copyFrom'] == self.colNum + self.rowNum:
