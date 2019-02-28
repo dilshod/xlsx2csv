@@ -40,5 +40,7 @@ nosetests.xml
 *.swp
 
 # Test
-
 *.csv-test
+
+# PyCharm
+.idea
