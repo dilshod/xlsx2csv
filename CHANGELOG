@@ -1,3 +1,11 @@
+version 0.7.5 (2019-Mar-7):
+  * Passing "sheets_order" test case. Added support for workbook relations.
+  * add floadformat to README
+  * Updated the date formats to current ms excel
+  * read and use [Content_Types].xml
+  * Fix for missing cell ids ("r" attribute in <c/>)
+  * Refactoring, etc.
+
 version 0.7.4 (2018-Jun-5):
 
 version 0.7.3 (2017-May-20):
