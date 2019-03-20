@@ -207,7 +207,7 @@ class Xlsx2csv:
     def getSheetIdByName(self, name):
         for s in self.workbook.sheets:
             if s['name'] == name:
-                return 'index' in s and s['index'] or s['id']
+                return s['index']
         return None
 
     def convert(self, outfile, sheetid=1):
@@ -222,7 +222,6 @@ class Xlsx2csv:
                     raise OutFileAlreadyExistsException("File " + str(outfile) + " already exists!")
             for s in self.workbook.sheets:
                 sheetname = s['name']
-                sheetindex = 'index' in s and s['index'] or s['id']
 
                 # filter sheets by include pattern
                 include_sheet_pattern = self.options['include_sheet_pattern']
@@ -255,9 +254,8 @@ class Xlsx2csv:
                 if isinstance(outfile, str):
                     of = os.path.join(outfile, sheetname + '.csv')
                 elif self.options['sheetdelimiter'] and len(self.options['sheetdelimiter']):
-                    of.write(self.options['sheetdelimiter'] + " " + str(sheetindex) + " - " + sheetname + self.options[
-                        'lineterminator'])
-                self._convert(sheetindex, of)
+                    of.write(self.options['sheetdelimiter'] + " " + str(s['index']) + " - " + sheetname + self.options['lineterminator'])
+                self._convert(s['index'], of)
 
     def _convert(self, sheet_index, outfile):
         closefile = False
@@ -274,7 +272,7 @@ class Xlsx2csv:
             writer = csv.writer(outfile, quoting=self.options['quoting'], delimiter=self.options['delimiter'],
                                 lineterminator=self.options['lineterminator'])
 
-            sheets_filtered = list(filter(lambda s: ('index' in s and s['index'] or s['id']) == sheet_index, self.workbook.sheets))
+            sheets_filtered = list(filter(lambda s: s['index'] == sheet_index, self.workbook.sheets))
             if len(sheets_filtered) == 0:
                 eprint("Sheet with index %i not found or can't be handled" % sheet_index)
                 return 1
@@ -395,7 +393,7 @@ class Workbook:
             relation_id = None
             if 'r:id' in attrs:
                 relation_id = attrs['r:id'].value
-            self.sheets.append({'name': name, 'relation_id': relation_id, 'index': i + 1})
+            self.sheets.append({'name': name, 'relation_id': relation_id, 'index': i + 1, 'id': i + 1})
 
 
 class ContentTypes:
