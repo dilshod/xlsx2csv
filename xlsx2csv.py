@@ -207,7 +207,7 @@ class Xlsx2csv:
     def getSheetIdByName(self, name):
         for s in self.workbook.sheets:
             if s['name'] == name:
-                return s['id']
+                return s.has_key('index') and s['index'] or s['id']
         return None
 
     def convert(self, outfile, sheetid=1):
@@ -222,6 +222,7 @@ class Xlsx2csv:
                     raise OutFileAlreadyExistsException("File " + str(outfile) + " already exists!")
             for s in self.workbook.sheets:
                 sheetname = s['name']
+                sheetindex = s.has_key('index') and s['index'] or s['id']
 
                 # filter sheets by include pattern
                 include_sheet_pattern = self.options['include_sheet_pattern']
@@ -254,9 +255,9 @@ class Xlsx2csv:
                 if isinstance(outfile, str):
                     of = os.path.join(outfile, sheetname + '.csv')
                 elif self.options['sheetdelimiter'] and len(self.options['sheetdelimiter']):
-                    of.write(self.options['sheetdelimiter'] + " " + str(s['index']) + " - " + sheetname + self.options[
+                    of.write(self.options['sheetdelimiter'] + " " + str(sheetindex) + " - " + sheetname + self.options[
                         'lineterminator'])
-                self._convert(s['index'], of)
+                self._convert(sheetindex, of)
 
     def _convert(self, sheet_index, outfile):
         closefile = False
@@ -273,7 +274,7 @@ class Xlsx2csv:
             writer = csv.writer(outfile, quoting=self.options['quoting'], delimiter=self.options['delimiter'],
                                 lineterminator=self.options['lineterminator'])
 
-            sheets_filtered = list(filter(lambda s: s['index'] == sheet_index, self.workbook.sheets))
+            sheets_filtered = list(filter(lambda s: (s.has_key('index') and s['index'] or s['id']) == sheet_index, self.workbook.sheets))
             if len(sheets_filtered) == 0:
                 eprint("Sheet with index %i not found or can't be handled" % sheet_index)
                 return 1
