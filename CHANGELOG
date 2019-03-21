@@ -1,3 +1,6 @@
+version 0.7.6 (2019-Mar-21):
+  * reverting id field for sheet indexing
+
 version 0.7.5 (2019-Mar-7):
   * Passing "sheets_order" test case. Added support for workbook relations.
   * add floadformat to README
