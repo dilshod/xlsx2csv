@@ -285,7 +285,9 @@ class Xlsx2csv:
                 if relation_id in self.workbook.relationships.relationships and \
                                 'target' in self.workbook.relationships.relationships[relation_id]:
                     relationship = self.workbook.relationships.relationships[relation_id]
-                    sheet_path = "/xl/" + relationship['target']
+                    sheet_path = relationship['target']
+                    if not (sheet_path.startswith("/xl/") or sheet_path.startswith("xl/")):
+                        sheet_path = "/xl/" + sheet_path
 
             if sheet_path is None:
                 sheet_path = "/xl/worksheets/sheet%i.xml" % sheet_index
