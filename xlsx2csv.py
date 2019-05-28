@@ -970,6 +970,10 @@ def convert_recursive(path, sheetid, outfile, kwargs):
                 print("File %s is not a zip file" % fullpath)
 
 
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+
 if __name__ == "__main__":
     try:
         signal.signal(signal.SIGPIPE, signal.SIG_DFL)
@@ -1133,7 +1137,3 @@ if __name__ == "__main__":
         _, e, _ = sys.exc_info()
         sys.stderr.write(str(e) + "\n")
         sys.exit(1)
-
-
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
