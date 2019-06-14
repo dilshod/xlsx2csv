@@ -182,6 +182,7 @@ class Xlsx2csv:
         options.setdefault("merge_cells", False)
         options.setdefault("ignore_formats", [''])
         options.setdefault("lineterminator", "\n")
+        options.setdefault("outputencoding", "utf-8")
 
         self.options = options
         try:
