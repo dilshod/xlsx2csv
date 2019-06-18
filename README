@@ -68,6 +68,12 @@ optional arguments:
                         effects when -a option is enabled.
   -m, --merge-cells     merge cells
 
+
+Usage from within Python:
+  from xlsx2csv import Xlsx2csv
+  Xlsx2csv("myfile.xlsx", outputencoding="utf-8").convert("myfile.csv")
+
+
 Expat SAX parser used for xml parsing.
 
 See alternatives:
