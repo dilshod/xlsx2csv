@@ -163,6 +163,7 @@ class Xlsx2csv:
        hyperlinks - include hyperlinks
        include_sheet_pattern - only include sheets named matching given pattern
        exclude_sheet_pattern - exclude sheets named matching given pattern
+       exclude_hidden_sheets - exclude hidden sheets
     """
 
     def __init__(self, xlsxfile, **options):
@@ -179,6 +180,7 @@ class Xlsx2csv:
         options.setdefault("hyperlinks", False)
         options.setdefault("include_sheet_pattern", ["^.*$"])
         options.setdefault("exclude_sheet_pattern", [])
+        options.setdefault("exclude_hidden_sheets", False)
         options.setdefault("merge_cells", False)
         options.setdefault("ignore_formats", [''])
         options.setdefault("lineterminator", "\n")
@@ -222,6 +224,11 @@ class Xlsx2csv:
                     raise OutFileAlreadyExistsException("File " + str(outfile) + " already exists!")
             for s in self.workbook.sheets:
                 sheetname = s['name']
+                sheetstate = s['state']
+
+                # filter hidden sheets
+                if sheetstate in ('hidden', 'veryHidden') and self.options['exclude_hidden_sheets']:
+                    continue
 
                 # filter sheets by include pattern
                 include_sheet_pattern = self.options['include_sheet_pattern']
@@ -392,10 +399,21 @@ class Workbook:
         for i, sheetNode in enumerate(sheetNodes):
             attrs = sheetNode._attrs
             name = attrs["name"].value
+            state = None
+            if 'state' in attrs:
+                state = attrs["state"].value
             relation_id = None
             if 'r:id' in attrs:
                 relation_id = attrs['r:id'].value
-            self.sheets.append({'name': name, 'relation_id': relation_id, 'index': i + 1, 'id': i + 1}) # remove id starting 0.8.0 version
+            self.sheets.append(
+                {
+                    'name': name,
+                    'relation_id': relation_id,
+                    'index': i + 1,
+                    'id': i + 1, # remove id starting 0.8.0 version
+                    'state': state
+                }
+            )
 
 
 class ContentTypes:
@@ -1020,6 +1038,8 @@ if __name__ == "__main__":
                         help="force scientific notation to float")
     parser.add_argument("-I", "--include_sheet_pattern", nargs=nargs_plus, dest="include_sheet_pattern", default="^.*$",
                         help="only include sheets named matching given pattern, only effects when -a option is enabled.")
+    parser.add_argument("--exclude_hidden_sheets", default=False, action="store_true",
+                        help="Exclude hidden sheets from the output, only effects when -a option is enabled.")
     parser.add_argument("--ignore-formats", nargs=nargs_plus, type=str, dest="ignore_formats", default=[''],
                         help="Ignores format for specific data types.")
     parser.add_argument("-l", "--lineterminator", dest="lineterminator", default="\n",
@@ -1113,6 +1133,7 @@ if __name__ == "__main__":
         'hyperlinks': options.hyperlinks,
         'include_sheet_pattern': options.include_sheet_pattern,
         'exclude_sheet_pattern': options.exclude_sheet_pattern,
+        'exclude_hidden_sheets': options.exclude_hidden_sheets,
         'merge_cells': options.merge_cells,
         'outputencoding': options.outputencoding,
         'lineterminator': options.lineterminator,
