@@ -26,6 +26,7 @@ pip install xlsx2csv
   Also, works standalone with only the *xlsx2csv.py* script
 
 **Usage:**
+```
  xlsx2csv.py [-h] [-v] [-a] [-c OUTPUTENCODING] [-s SHEETID]
                    [-n SHEETNAME] [-d DELIMITER] [-l LINETERMINATOR]
                    [-f DATEFORMAT] [--floatformat FLOATFORMAT]
@@ -34,12 +35,14 @@ pip install xlsx2csv
                    [-I INCLUDE_SHEET_PATTERN [INCLUDE_SHEET_PATTERN ...]]
                    [-E EXCLUDE_SHEET_PATTERN [EXCLUDE_SHEET_PATTERN ...]] [-m]
                    xlsxfile [outfile]
-
+```
 **positional arguments:**
+```
   xlsxfile              xlsx file path
   outfile               output csv file path
-
+```
 **optional arguments:**
+```
   -h, --help            show this help message and exit
   -v, --version         show program's version number and exit
   -a, --all             export all sheets
@@ -76,12 +79,13 @@ pip install xlsx2csv
                         exclude sheets named matching given pattern, only
                         effects when -a option is enabled.
   -m, --merge-cells     merge cells
-
+```
 
 Usage from within Python:
+```
   from xlsx2csv import Xlsx2csv
   Xlsx2csv("myfile.xlsx", outputencoding="utf-8").convert("myfile.csv")
-
+```
 
 Expat SAX parser used for xml parsing.
 
