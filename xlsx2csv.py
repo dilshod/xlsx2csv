@@ -296,15 +296,26 @@ class Xlsx2csv:
                     if not (sheet_path.startswith("/xl/") or sheet_path.startswith("xl/")):
                         sheet_path = "/xl/" + sheet_path
 
+            sheet_file = None
             if sheet_path is None:
                 sheet_path = "/xl/worksheets/sheet%i.xml" % sheet_index
+                sheet_file = self._filehandle(sheet_path)
+                if sheet_file is None:
+                    sheet_path = None
             if sheet_path is None:
                 sheet_path = "/xl/worksheets/worksheet%i.xml" % sheet_index
+                sheet_file = self._filehandle(sheet_path)
+                if sheet_file is None:
+                    sheet_path = None
             if sheet_path is None and sheet_index == 1:
                 sheet_path = self.content_types.types["worksheet"]
-            if sheet_path is None:
+                sheet_file = self._filehandle(sheet_path)
+                if sheet_file is None:
+                    sheet_path = None
+            if sheet_file is None and sheet_path is not None:
+                sheet_file = self._filehandle(sheet_path)
+            if sheet_file is None:
                 raise SheetNotFoundException("Sheet %i not found" % sheet_index)
-            sheet_file = self._filehandle(sheet_path)
             sheet = Sheet(self.workbook, self.shared_strings, self.styles, sheet_file)
             try:
                 relationships_path = os.path.join(os.path.dirname(sheet_path),
