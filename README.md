@@ -6,7 +6,7 @@
 Converts xlsx files to csv format.
 Handles large XLSX files. Fast and easy to use.
 
-## Supported version:
+## Supported python versions:
  - 2.4
  - 2.7
  - 3.4
