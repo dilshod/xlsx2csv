@@ -128,6 +128,8 @@ CONTENT_TYPES = {
 DEFAULT_APP_PATH = "/xl"
 DEFAULT_WORKBOOK_PATH = DEFAULT_APP_PATH + "/workbook.xml"
 
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 class XlsxException(Exception):
     pass
@@ -998,10 +1000,6 @@ def convert_recursive(path, sheetid, outfile, kwargs):
                 Xlsx2csv(fullpath, **kwargs).convert(outfilepath, sheetid)
             except zipfile.BadZipfile:
                 print("File %s is not a zip file" % fullpath)
-
-
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
 
 
 if __name__ == "__main__":
