@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/pypy
 #
 #   Copyright information
 #
@@ -187,6 +187,8 @@ class Xlsx2csv:
         options.setdefault("ignore_formats", [''])
         options.setdefault("lineterminator", "\n")
         options.setdefault("outputencoding", "utf-8")
+        options.setdefault("rows", 1)
+        options.setdefault("parsed_rows", 1)
 
         self.options = options
         try:
@@ -334,6 +336,8 @@ class Xlsx2csv:
                 sheet.set_merge_cells(self.options['merge_cells'])
                 sheet.set_scifloat(self.options['scifloat'])
                 sheet.set_ignore_formats(self.options['ignore_formats'])
+                sheet.set_rows(self.options['rows'])
+                sheet.set_parsed_rows(self.options['parsed_rows'])
                 if self.options['escape_strings'] and sheet.filedata:
                     sheet.filedata = re.sub(r"(<v>[^<>]+)&#10;([^<>]+</v>)", r"\1\\n\2",
                                             re.sub(r"(<v>[^<>]+)&#9;([^<>]+</v>)", r"\1\\t\2",
@@ -656,6 +660,12 @@ class Sheet:
     def set_floatformat(self, floatformat):
         self.floatformat = floatformat
 
+    def set_rows(self, rows):
+        self.rows = rows
+
+    def set_parsed_rows(self, parsed_rows):
+        self.parsed_rows = parsed_rows
+
     def set_skip_empty_lines(self, skip):
         self.skip_empty_lines = skip
 
@@ -935,8 +945,9 @@ class Sheet:
                 if not self.skip_empty_lines:
                     for i in range(self.lastRowNum, int(self.rowNum) - 1):
                         self.writer.writerow([])
+                        self.parsed_rows+=1
                     self.lastRowNum = int(self.rowNum)
-
+                
                 # write line to csv
                 if not self.skip_empty_lines or d.count('') != len(d):
                     while len(d) < self.columns_count:
@@ -951,10 +962,13 @@ class Sheet:
                         elif self.max_columns > 0:
                             d = d[0:self.max_columns]
                     self.writer.writerow(d)
+                    self.parsed_rows+=1
 
             self.in_row = False
         elif self.in_sheet and (name == 'sheetData' or (has_namespace and name.endswith(':sheetData'))):
             self.in_sheet = False
+        if self.rows > 0 and self.parsed_rows > self.rows:
+            exit(0)
 
     # rangeStr: "A3:C12" or "D5"
     # example: for cell in _range("A1:Z12"): print cell
@@ -1070,6 +1084,8 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--sheet", dest="sheetid", default=1, type=inttype,
                         help="sheet number to convert")
 
+    parser.add_argument("-rows", "--rows", dest="rows", default=1, type=inttype,
+                        help="Number of rows to convert")
     if argparser:
         options = parser.parse_args()
     else:
@@ -1147,7 +1163,8 @@ if __name__ == "__main__":
         'merge_cells': options.merge_cells,
         'outputencoding': options.outputencoding,
         'lineterminator': options.lineterminator,
-        'ignore_formats': options.ignore_formats
+        'ignore_formats': options.ignore_formats,
+        'rows': options.rows
     }
     sheetid = options.sheetid
     if options.all:
