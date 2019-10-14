@@ -106,7 +106,7 @@ STANDARD_FORMATS = {
     19: 'h:mm:ss am/pm',
     20: 'h:mm',
     21: 'h:mm:ss',
-    22: 'm/d/yy h:mm',
+    22: 'm/d/yy hh:mm',
     37: '#,##0 ;(#,##0)',
     38: '#,##0 ;[red](#,##0)',
     39: '#,##0.00;(#,##0.00)',
@@ -513,7 +513,7 @@ class Styles:
             for numFmt in numFmtsElement[0].childNodes:
                 if numFmt.nodeType == minidom.Node.ELEMENT_NODE:
                     numFmtId = int(numFmt._attrs['numFmtId'].value)
-                    formatCode = numFmt._attrs['formatCode'].value.lower().replace('\\', '')
+                    formatCode = numFmt._attrs['formatCode'].value.lower().replace('\\', '').replace('"', '')
                     self.numFmts[numFmtId] = formatCode
 
         if styles.namespaceURI:
