@@ -513,7 +513,10 @@ class Styles:
             for numFmt in numFmtsElement[0].childNodes:
                 if numFmt.nodeType == minidom.Node.ELEMENT_NODE:
                     numFmtId = int(numFmt._attrs['numFmtId'].value)
-                    formatCode = numFmt._attrs['formatCode'].value.lower().replace('\\', '').replace('"', '')
+                    formatCode = numFmt._attrs['formatCode'].value.lower()
+                    bad_chars = ['\\', '"']
+                    for bad_char in bad_chars:
+                        formatCode = formatCode.replace(bad_char, '')
                     self.numFmts[numFmtId] = formatCode
 
         if styles.namespaceURI:
