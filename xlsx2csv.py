@@ -57,7 +57,7 @@ FORMATS = {
     'h:mm:ss am/pm': 'date',
     'h:mm': 'time',
     'h:mm:ss': 'time',
-    'm/d/yy h:mm': 'date',
+    'm/d/yy hh:mm': 'date',
     '#,##0 ;(#,##0)': 'float',
     '#,##0 ;[red](#,##0)': 'float',
     '#,##0.00;(#,##0.00)': 'float',
