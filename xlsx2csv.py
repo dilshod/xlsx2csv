@@ -812,6 +812,7 @@ class Sheet:
                 if format_type and not format_type in self.ignore_formats:
                     try:
                         if format_type == 'date':  # date/time
+                            format_str = self.update_time(format_str)
                             if self.workbook.date1904:
                                 date = datetime.datetime(1904, 1, 1) + datetime.timedelta(float(self.data))
                             else:
@@ -854,6 +855,16 @@ class Sheet:
                         eprint("Error: potential invalid date format.")
                         # invalid date format
                         pass
+
+    def update_time(self, date_format):
+        """
+        This function converts the h to hh if am pm is not there
+        :param date_format:
+        :return: updated_date_format
+        """
+        if not any(time in date_format for time in ['am', 'pm']):
+            date_format = re.sub(r"(?<=\W)h(?=:)", "hh", date_format) # "h -> hh"
+        return date_format
 
     def handleStartElement(self, name, attrs):
         has_namespace = name.find(":") > 0
