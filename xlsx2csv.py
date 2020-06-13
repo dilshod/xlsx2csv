@@ -218,6 +218,11 @@ class Xlsx2csv:
     def convert(self, outfile, sheetid=1):
         """outfile - path to file or filehandle"""
         if sheetid > 0:
+            if not os.path.exists(outfile):
+                os.makedirs(outfile)
+            elif os.path.isfile(outfile):
+                raise OutFileAlreadyExistsException("File " + str(outfile) + " already exists!")
+                return
             self._convert(sheetid, outfile)
         else:
             if isinstance(outfile, str):
