@@ -22,7 +22,7 @@ from __future__ import print_function
 
 __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
 __license__ = "GPL-2+"
-__version__ = "0.7.6"
+__version__ = "0.7.7"
 
 import csv, datetime, zipfile, string, sys, os, re, signal
 import xml.parsers.expat

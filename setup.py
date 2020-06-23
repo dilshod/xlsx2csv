@@ -10,7 +10,7 @@ shutil.copyfile('xlsx2csv.py', 'scripts/xlsx2csv')
 scripts = ["scripts/xlsx2csv"]
 
 name = "xlsx2csv"
-version = "0.7.6"
+version = "0.7.7"
 author = "Dilshod Temirkhdojaev"
 author_email = "tdilshod@gmail.com"
 desc = "xlsx to csv converter"
@@ -43,7 +43,7 @@ data_files=[
 
 setup(
     name='xlsx2csv',
-    version='0.7.6',
+    version='0.7.7',
     description=desc,
     author=author,
     author_email=author_email,
