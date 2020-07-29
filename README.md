@@ -39,7 +39,7 @@ pip install xlsx2csv
 **positional arguments:**
 ```
   xlsxfile              xlsx file path
-  outfile               output csv file path
+  outfile               output csv file path, or directory if -s 0 is specified
 ```
 **optional arguments:**
 ```
@@ -49,7 +49,7 @@ pip install xlsx2csv
   -c OUTPUTENCODING, --outputencoding OUTPUTENCODING
                         encoding of output csv ** Python 3 only ** (default: utf-8)
   -s SHEETID, --sheet SHEETID
-                        sheet number to convert
+                        sheet number to convert, 0 for all
   -n SHEETNAME, --sheetname SHEETNAME
                         sheet name to convert
   -d DELIMITER, --delimiter DELIMITER
