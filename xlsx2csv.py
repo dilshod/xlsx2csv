@@ -57,7 +57,7 @@ FORMATS = {
     'h:mm:ss am/pm': 'date',
     'h:mm': 'time',
     'h:mm:ss': 'time',
-    'm/d/yy h:mm': 'date',
+    'm/d/yy hh:mm': 'date',
     '#,##0 ;(#,##0)': 'float',
     '#,##0 ;[red](#,##0)': 'float',
     '#,##0.00;(#,##0.00)': 'float',
@@ -106,7 +106,7 @@ STANDARD_FORMATS = {
     19: 'h:mm:ss am/pm',
     20: 'h:mm',
     21: 'h:mm:ss',
-    22: 'm/d/yy h:mm',
+    22: 'm/d/yy hh:mm',
     37: '#,##0 ;(#,##0)',
     38: '#,##0 ;[red](#,##0)',
     39: '#,##0.00;(#,##0.00)',
@@ -513,7 +513,10 @@ class Styles:
             for numFmt in numFmtsElement[0].childNodes:
                 if numFmt.nodeType == minidom.Node.ELEMENT_NODE:
                     numFmtId = int(numFmt._attrs['numFmtId'].value)
-                    formatCode = numFmt._attrs['formatCode'].value.lower().replace('\\', '')
+                    formatCode = numFmt._attrs['formatCode'].value.lower()
+                    bad_chars = ['\\', '"']
+                    for bad_char in bad_chars:
+                        formatCode = formatCode.replace(bad_char, '')
                     self.numFmts[numFmtId] = formatCode
 
         if styles.namespaceURI:
@@ -809,6 +812,7 @@ class Sheet:
                 if format_type and not format_type in self.ignore_formats:
                     try:
                         if format_type == 'date':  # date/time
+                            format_str = self.update_time(format_str)
                             if self.workbook.date1904:
                                 date = datetime.datetime(1904, 1, 1) + datetime.timedelta(float(self.data))
                             else:
@@ -851,6 +855,16 @@ class Sheet:
                         eprint("Error: potential invalid date format.")
                         # invalid date format
                         pass
+
+    def update_time(self, date_format):
+        """
+        This function converts the h to hh if am pm is not there
+        :param date_format:
+        :return: updated_date_format
+        """
+        if not any(time in date_format for time in ['am', 'pm']):
+            date_format = re.sub(r"(?<=\W)h(?=:)", "hh", date_format) # "h -> hh"
+        return date_format
 
     def handleStartElement(self, name, attrs):
         has_namespace = name.find(":") > 0
