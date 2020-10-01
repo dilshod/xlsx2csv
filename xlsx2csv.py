@@ -780,7 +780,9 @@ class Sheet:
 
                 # get cell format
                 format_str = "general"
-                xfs_numfmt = self.styles.cellXfs[s]
+                xfs_numfmt = None
+                if s < len(self.styles.cellXfs):
+                    xfs_numfmt = self.styles.cellXfs[s]
                 if xfs_numfmt in self.styles.numFmts:
                     format_str = self.styles.numFmts[xfs_numfmt]
                 elif xfs_numfmt in STANDARD_FORMATS:
