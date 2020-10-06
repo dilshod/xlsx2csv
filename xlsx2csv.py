@@ -767,19 +767,23 @@ class Sheet:
 
     def handleCharData(self, data):
         if self.in_cell_value:
+            format_type = None
+            format_str = "general"
             self.collected_string += data
             self.data = self.collected_string
             if self.colType == "s":  # shared string
+                format_type = "string"
                 self.data = self.sharedStrings[int(self.data)]
             elif self.colType == "b":  # boolean
+                format_type = "boolean"
                 self.data = (int(data) == 1 and "TRUE") or (int(data) == 0 and "FALSE") or data
             elif self.colType == "str" or self.colType == "inlineStr":
+                format_type = "string"
                 self.data = data
             elif self.s_attr:
                 s = int(self.s_attr)
 
                 # get cell format
-                format_str = "general"
                 xfs_numfmt = None
                 if s < len(self.styles.cellXfs):
                     xfs_numfmt = self.styles.cellXfs[s]
@@ -793,7 +797,6 @@ class Sheet:
                     eprint("unknown format %s at %d" % (format_str, xfs_numfmt))
                     return
 
-                format_type = None
                 if format_str in FORMATS:
                     format_type = FORMATS[format_str]
                 elif re.match("^\d+(\.\d+)?$", self.data) and re.match(".*[hsmdyY]", format_str) and not re.match(
@@ -808,51 +811,54 @@ class Sheet:
                     format_type = "float"
                 if format_type == 'date' and self.dateformat == 'float':
                     format_type = "float"
-                if format_type and not format_type in self.ignore_formats:
-                    try:
-                        if format_type == 'date':  # date/time
-                            if self.workbook.date1904:
-                                date = datetime.datetime(1904, 1, 1) + datetime.timedelta(float(self.data))
-                            else:
-                                date = datetime.datetime(1899, 12, 30) + datetime.timedelta(float(self.data))
-                            if self.dateformat:
-                                # str(dateformat) - python2.5 bug, see: http://bugs.python.org/issue2782
-                                self.data = date.strftime(str(self.dateformat))
-                            else:
-                                # ignore ";@", don't know what does it mean right now
-                                # ignore "[$-409], [$-f409], [$-16001]" and similar format codes
-                                dateformat = re.sub(r"\[\$\-[A-z0-9]*\]", "", format_str, 1) \
-                                    .replace(";@", "").replace("yyyy", "%Y").replace("yy", "%y") \
-                                    .replace("hh:mm", "%H:%M").replace("h", "%I").replace("%H%H", "%H") \
-                                    .replace("ss", "%S").replace("dddd", "d").replace("dd", "d").replace("d", "%d") \
-                                    .replace("am/pm", "%p").replace("mmmm", "%B").replace("mmm", "%b") \
-                                    .replace(":mm", ":%M").replace("m", "%m").replace("%m%m", "%m")
-                                self.data = date.strftime(str(dateformat)).strip()
-                        elif format_type == 'time':  # time
-                            t = int(round((float(self.data) % 1) * 24 * 60 * 60, 6))  # it should be in seconds
-                            d = datetime.time(int((t // 3600) % 24), int((t // 60) % 60), int(t % 60))
-                            self.data = d.strftime(self.timeformat)
-                        elif format_type == 'float' and ('E' in self.data or 'e' in self.data):
-                            self.data = str(self.floatformat or '%f') % float(self.data)
-                        # if cell is general, be aggressive about stripping any trailing 0s, decimal points, etc.
-                        elif format_type == 'float' and format_str == 'general':
-                            self.data = ("%f" % (float(self.data))).rstrip('0').rstrip('.')
-                        elif format_type == 'float' and format_str[0:3] == '0.0':
-                            if self.floatformat:
-                                self.data = str(self.floatformat) % float(self.data)
-                            else:
-                                L = len(format_str.split(".")[1])
-                                if '%' in format_str:
-                                    L += 1
-                                self.data = ("%." + str(L) + "f") % float(self.data)
-                        elif format_type == 'float':
-                            # unsupported float formatting
-                            self.data = ("%f" % (float(self.data))).rstrip('0').rstrip('.')
+            elif self.colType == "n":
+                format_type = "float"
 
-                    except (ValueError, OverflowError):  # this catch must be removed, it's hiding potential problems
-                        eprint("Error: potential invalid date format.")
-                        # invalid date format
-                        pass
+            if format_type and not format_type in self.ignore_formats:
+                try:
+                    if format_type == 'date':  # date/time
+                        if self.workbook.date1904:
+                            date = datetime.datetime(1904, 1, 1) + datetime.timedelta(float(self.data))
+                        else:
+                            date = datetime.datetime(1899, 12, 30) + datetime.timedelta(float(self.data))
+                        if self.dateformat:
+                            # str(dateformat) - python2.5 bug, see: http://bugs.python.org/issue2782
+                            self.data = date.strftime(str(self.dateformat))
+                        else:
+                            # ignore ";@", don't know what does it mean right now
+                            # ignore "[$-409], [$-f409], [$-16001]" and similar format codes
+                            dateformat = re.sub(r"\[\$\-[A-z0-9]*\]", "", format_str, 1) \
+                                .replace(";@", "").replace("yyyy", "%Y").replace("yy", "%y") \
+                                .replace("hh:mm", "%H:%M").replace("h", "%I").replace("%H%H", "%H") \
+                                .replace("ss", "%S").replace("dddd", "d").replace("dd", "d").replace("d", "%d") \
+                                .replace("am/pm", "%p").replace("mmmm", "%B").replace("mmm", "%b") \
+                                .replace(":mm", ":%M").replace("m", "%m").replace("%m%m", "%m")
+                            self.data = date.strftime(str(dateformat)).strip()
+                    elif format_type == 'time':  # time
+                        t = int(round((float(self.data) % 1) * 24 * 60 * 60, 6))  # it should be in seconds
+                        d = datetime.time(int((t // 3600) % 24), int((t // 60) % 60), int(t % 60))
+                        self.data = d.strftime(self.timeformat)
+                    elif format_type == 'float' and ('E' in self.data or 'e' in self.data):
+                        self.data = str(self.floatformat or '%f') % float(self.data)
+                    # if cell is general, be aggressive about stripping any trailing 0s, decimal points, etc.
+                    elif format_type == 'float' and format_str == 'general':
+                        self.data = ("%f" % (float(self.data))).rstrip('0').rstrip('.')
+                    elif format_type == 'float' and format_str[0:3] == '0.0':
+                        if self.floatformat:
+                            self.data = str(self.floatformat) % float(self.data)
+                        else:
+                            L = len(format_str.split(".")[1])
+                            if '%' in format_str:
+                                L += 1
+                            self.data = ("%." + str(L) + "f") % float(self.data)
+                    elif format_type == 'float':
+                        # unsupported float formatting
+                        self.data = ("%f" % (float(self.data))).rstrip('0').rstrip('.')
+
+                except (ValueError, OverflowError):  # this catch must be removed, it's hiding potential problems
+                    eprint("Error: potential invalid date format.")
+                    # invalid date format
+                    pass
 
     def handleStartElement(self, name, attrs):
         has_namespace = name.find(":") > 0
