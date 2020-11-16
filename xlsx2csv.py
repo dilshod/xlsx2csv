@@ -933,7 +933,10 @@ class Sheet:
                     val = self.columns[k]
                     if not self.py3:
                         val = val.encode("utf-8")
-                    d[k] = val
+                    if k >= 0 and k < len(d):
+                        d[k] = val
+                    else:
+                        d.append(val)
                 if self.spans:
                     l = self.spans[1]
                     if len(d) < l:
