@@ -928,15 +928,22 @@ class Sheet:
 
         if self.in_row and (name == 'row' or (has_namespace and name.endswith(':row'))):
             if len(self.columns.keys()) > 0:
-                d = [""] * (max(self.columns.keys()) + 1)
-                for k in self.columns.keys():
-                    val = self.columns[k]
-                    if not self.py3:
-                        val = val.encode("utf-8")
-                    if k >= 0 and k < len(d):
-                        d[k] = val
-                    else:
+                if min(self.columns.keys()) < 0: # Weird
+                    d = []
+                    keys = self.columns.keys()
+                    keys.sort()
+                    for k in keys:
+                        val = self.columns[k]
+                        if not self.py3:
+                            val = val.encode("utf-8")
                         d.append(val)
+                else:
+                    d = [""] * (max(self.columns.keys()) + 1)
+                    for k in self.columns.keys():
+                        val = self.columns[k]
+                        if not self.py3:
+                            val = val.encode("utf-8")
+                        d[k] = val
                 if self.spans:
                     l = self.spans[1]
                     if len(d) < l:
