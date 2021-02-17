@@ -179,6 +179,7 @@ class Xlsx2csv:
         options.setdefault("skip_empty_lines", False)
         options.setdefault("skip_trailing_columns", False)
         options.setdefault("escape_strings", False)
+        options.setdefault("no_line_breaks", False)
         options.setdefault("hyperlinks", False)
         options.setdefault("include_sheet_pattern", ["^.*$"])
         options.setdefault("exclude_sheet_pattern", [])
@@ -202,7 +203,9 @@ class Xlsx2csv:
         self.workbook = self._parse(Workbook, self.content_types.types["workbook"])
         workbook_relationships = list(filter(lambda r: "book" in r, self.content_types.types["relationships"]))[0]
         self.workbook.relationships = self._parse(Relationships, workbook_relationships)
-        if self.options['escape_strings']:
+        if self.options['no_line_breaks']:
+            self.shared_strings.replace_line_breaks()
+        elif self.options['escape_strings']:
             self.shared_strings.escape_strings()
 
     def __del__(self):
@@ -563,6 +566,10 @@ class SharedStrings:
     def escape_strings(self):
         for i in range(0, len(self.strings)):
             self.strings[i] = self.strings[i].replace("\r", "\\r").replace("\n", "\\n").replace("\t", "\\t")
+
+    def replace_line_breaks(self):
+        for i in range(0, len(self.strings)):
+            self.strings[i] = self.strings[i].replace("\r", " ").replace("\n", " ").replace("\t", " ")
 
     def handleCharData(self, data):
         if self.t:
@@ -1054,6 +1061,8 @@ if __name__ == "__main__":
                         help="include hyperlinks")
     parser.add_argument("-e", "--escape", dest='escape_strings', default=False, action="store_true",
                         help="Escape \\r\\n\\t characters")
+    parser.add_argument("--no-line-breaks", "--no-line-breaks", dest='no_line_breaks', default=False, action="store_true",
+                        help="Replace \\r\\n\\t with space")
     parser.add_argument("-E", "--exclude_sheet_pattern", nargs=nargs_plus, dest="exclude_sheet_pattern", default="",
                         help="exclude sheets named matching given pattern, only effects when -a option is enabled.")
     parser.add_argument("-f", "--dateformat", dest="dateformat",
@@ -1158,6 +1167,7 @@ if __name__ == "__main__":
         'skip_empty_lines': options.skip_empty_lines,
         'skip_trailing_columns': options.skip_trailing_columns,
         'escape_strings': options.escape_strings,
+        'no_line_breaks': options.no_line_breaks,
         'hyperlinks': options.hyperlinks,
         'include_sheet_pattern': options.include_sheet_pattern,
         'exclude_sheet_pattern': options.exclude_sheet_pattern,
