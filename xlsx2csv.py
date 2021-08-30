@@ -22,7 +22,7 @@ from __future__ import print_function
 
 __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
 __license__ = "GPL-2+"
-__version__ = "0.7.8"
+__version__ = "0.7.9"
 
 import csv, datetime, zipfile, string, sys, os, re, signal
 import xml.parsers.expat
@@ -154,6 +154,7 @@ class Xlsx2csv:
        xlsxfile - path to file or filehandle
      options:
        sheetid - sheet no to convert (0 for all sheets)
+       sheetname - sheet name to convert
        dateformat - override date/time format
        timeformat - override time format
        floatformat - override float format
@@ -218,8 +219,12 @@ class Xlsx2csv:
                 return s['index']
         return None
 
-    def convert(self, outfile, sheetid=1):
+    def convert(self, outfile, sheetid=1, sheetname=None):
         """outfile - path to file or filehandle"""
+        if sheetname:
+            sheetid = self.getSheetIdByName(sheetname)
+            if not sheetid:
+                raise XlsxException("Sheet '%s' not found" % sheetname)
         if sheetid > 0:
             self._convert(sheetid, outfile)
         else:
