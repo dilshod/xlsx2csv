@@ -889,7 +889,7 @@ class Sheet:
                     (name == 'v' or name == 'is') or (has_namespace and (name.endswith(':v') or name.endswith(':is')))):
             self.in_cell_value = True
             self.collected_string = ""
-        elif self.in_sheet and (name == 'row' or (has_namespace and name.endswith(':row'))) and ('r' in attrs):
+        elif self.in_sheet and (name == 'row' or (has_namespace and name.endswith(':row'))) and ('r' in attrs) and not ('hidden' in attrs and attrs['hidden'] == '1'):
             self.rowNum = attrs['r']
             self.in_row = True
             self.colIndex = 0
@@ -937,6 +937,7 @@ class Sheet:
                     d = self.mergeCells[self.mergeCells[self.colNum + self.rowNum]['copyFrom']]['value']
 
             self.columns[t - 1 + self.colIndex] = d
+            self.in_cell = False
 
         if self.in_row and (name == 'row' or (has_namespace and name.endswith(':row'))):
             if len(self.columns.keys()) > 0:
