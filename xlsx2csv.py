@@ -1023,7 +1023,11 @@ def convert_recursive(path, sheetid, outfile, kwargs):
             convert_recursive(fullpath, sheetid, outfile, kwargs)
         else:
             outfilepath = outfile
-            if len(outfilepath) == 0 and fullpath.lower().endswith(".xlsx"):
+            if isinstance(outfilepath, type(sys.stdout)):
+                outfilepath = fullpath[:-4] + 'csv'
+            elif os.path.isdir(outfilepath):
+                outfilepath = os.path.join(outfilepath, name[:-4] + 'csv')
+            elif len(outfilepath) == 0 and fullpath.lower().endswith(".xlsx"):
                 outfilepath = fullpath[:-4] + 'csv'
 
             print("Converting %s to %s" % (fullpath, outfilepath))
