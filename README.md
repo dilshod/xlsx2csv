@@ -81,6 +81,12 @@ pip install xlsx2csv
   -m, --merge-cells     merge cells
 ```
 
+Usage with folder containing multiple `xlxs` files:
+```
+    python xlsx2csv.py /path/to/input/dir /path/to/output/dir
+```
+will output each file in the input dir converted to `.csv` in the output dir. If omitting the output dir it will output the converted files in the input dir
+
 Usage from within Python:
 ```
   from xlsx2csv import Xlsx2csv
