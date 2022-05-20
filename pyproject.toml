@@ -1,5 +1,41 @@
 [build-system]
-requires = ["setuptools>=42.2", "wheel", "setuptools_scm[toml]>=3.4.3"]
+requires = ["setuptools>=61.2.0", "wheel", "setuptools_scm[toml]>=3.4.3"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "xlsx2csv"
+authors = [{name = "Dilshod Temirkhdojaev", email = "tdilshod@gmail.com"}]
+description = "xlsx to csv converter"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License (GPL)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 2",
+    "Programming Language :: Python :: 2.4",
+    "Programming Language :: Python :: 2.5",
+    "Programming Language :: Python :: 2.6",
+    "Programming Language :: Python :: 2.7",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.0",
+    "Programming Language :: Python :: 3.1",
+    "Programming Language :: Python :: 3.2",
+    "Programming Language :: Python :: 3.3",
+    "Programming Language :: Python :: 3.4",
+    "Topic :: Office/Business",
+    "Topic :: Utilities",
+]
+urls = {Homepage = "http://github.com/dilshod/xlsx2csv"}
+dynamic = ["version"]
+
+[project.scripts]
+xlsx2csv = "xlsx2csv:main"
+
+[tool.setuptools]
+py-modules = ["xlsx2csv"]
+include-package-data = false
 
 [tool.setuptools_scm]
