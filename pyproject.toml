@@ -1,22 +1,12 @@
+[build-system]
+requires = ["setuptools>=61.2.0", "wheel", "setuptools_scm[toml]>=3.4.3"]
+build-backend = "setuptools.build_meta"
 
-import os
-import shutil
-from distutils.core import setup
-
-if not os.path.exists('scripts'):
-    os.makedirs('scripts')
-shutil.copyfile('xlsx2csv.py', 'scripts/xlsx2csv')
-
-scripts = ["scripts/xlsx2csv"]
-
+[project]
 name = "xlsx2csv"
-version = "0.7.8"
-author = "Dilshod Temirkhdojaev"
-author_email = "tdilshod@gmail.com"
-desc = "xlsx to csv converter"
-long_desc = "xlsx to csv converter"
-url = "http://github.com/dilshod/xlsx2csv"
-classifiers=[
+authors = [{name = "Dilshod Temirkhdojaev", email = "tdilshod@gmail.com"}]
+description = "xlsx to csv converter"
+classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: End Users/Desktop",
@@ -36,20 +26,16 @@ classifiers=[
     "Programming Language :: Python :: 3.3",
     "Programming Language :: Python :: 3.4",
     "Topic :: Office/Business",
-    "Topic :: Utilities"
+    "Topic :: Utilities",
 ]
-data_files=[
-]
+urls = {Homepage = "http://github.com/dilshod/xlsx2csv"}
+dynamic = ["version"]
 
-setup(
-    name='xlsx2csv',
-    version='0.7.8',
-    description=desc,
-    author=author,
-    author_email=author_email,
-    classifiers=classifiers,
-    py_modules=['xlsx2csv'],
-    data_files=data_files,
-    url=url,
-    scripts=scripts
-)
+[project.scripts]
+xlsx2csv = "xlsx2csv:main"
+
+[tool.setuptools]
+py-modules = ["xlsx2csv"]
+include-package-data = false
+
+[tool.setuptools_scm]
