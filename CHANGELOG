@@ -1,3 +1,6 @@
+version 0.8.0 (2022-Jun-7):
+ * MIT License
+
 version 0.7.9 (2021-Aug-29)
  * add support for sheetname argument to convert function
 

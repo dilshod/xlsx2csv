@@ -111,15 +111,10 @@ Java:
 http://poi.apache.org/
 
 
-All programs in this directory and subdirectories are published under
-license GNU GPL version 2 or (at your option) any later version. For
-more information, see COPYING or visit <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
-
-
 ## Meta
 
   Dilshod Temirkhdojaev – tdilshod@gmail.com
 
-Distributed under the GNU GENERAL PUBLIC LICENSE. See ``LICENSE`` for more information.
+Distributed under the MIT LICENSE. See ``LICENSE`` for more information.
 
 [https://github.com/dilshod](https://github.com/dilshod)
