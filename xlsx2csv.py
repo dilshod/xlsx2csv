@@ -149,6 +149,10 @@ class OutFileAlreadyExistsException(XlsxException):
     pass
 
 
+class XlsxValueError(XlsxException):
+    pass
+
+
 class Xlsx2csv:
     """
      Usage: Xlsx2csv("test.xslx", **params).convert("test.csv", sheetid=1)
@@ -285,8 +289,7 @@ class Xlsx2csv:
             elif sys.version_info[0] == 3:
                 outfile = open(outfile, 'w+', encoding=self.options['outputencoding'], newline="")
             else:
-                sys.stderr.write("error: version of your python is not supported: " + str(sys.version_info) + "\n")
-                sys.exit(1)
+                raise XlsxException("error: version of your python is not supported: " + str(sys.version_info) + "\n")
             closefile = True
         try:
             writer = csv.writer(outfile, quoting=self.options['quoting'], delimiter=self.options['delimiter'],
@@ -294,8 +297,7 @@ class Xlsx2csv:
 
             sheets_filtered = list(filter(lambda s: s['index'] == sheet_index, self.workbook.sheets))
             if len(sheets_filtered) == 0:
-                eprint("Sheet with index %i not found or can't be handled" % sheet_index)
-                return 1
+                raise XlsxValueError("Sheet with index %i not found or can't be handled" % sheet_index)
 
             sheet_path = None
             # using sheet relation information
@@ -808,8 +810,7 @@ class Sheet:
 
                 # get format type
                 if not format_str:
-                    eprint("unknown format %s at %d" % (format_str, xfs_numfmt))
-                    return
+                    raise XlsxValueError("unknown format %s at %d" % (format_str, xfs_numfmt))
 
                 if format_str in FORMATS:
                     format_type = FORMATS[format_str]
@@ -870,9 +871,7 @@ class Sheet:
                         self.data = ("%f" % (float(self.data))).rstrip('0').rstrip('.')
 
                 except (ValueError, OverflowError):  # this catch must be removed, it's hiding potential problems
-                    eprint("Error: potential invalid date format.")
-                    # invalid date format
-                    pass
+                    raise XlsxValueError("Error: potential invalid date format.")
 
     def handleStartElement(self, name, attrs):
         has_namespace = name.find(":") > 0
@@ -1036,7 +1035,7 @@ def convert_recursive(path, sheetid, outfile, kwargs):
             try:
                 Xlsx2csv(fullpath, **kwargs).convert(outfilepath, sheetid)
             except zipfile.BadZipfile:
-                print("File %s is not a zip file" % fullpath)
+                raise InvalidXlsxFileException("File %s is not a zip file" % fullpath)
 
 
 def main():
@@ -1115,8 +1114,7 @@ def main():
         (options, args) = parser.parse_args()
         if len(args) < 1:
             parser.print_usage()
-            sys.stderr.write("error: too few arguments" + os.linesep)
-            sys.exit(1)
+            sys.exit("error: too few arguments" + os.linesep)
         options.infile = args[0]
         options.outfile = len(args) > 1 and args[1] or None
 
@@ -1129,8 +1127,7 @@ def main():
     elif options.delimiter[0] == 'x':
         options.delimiter = chr(int(options.delimiter[1:]))
     else:
-        sys.stderr.write("error: invalid delimiter\n")
-        sys.exit(1)
+        sys.exit("error: invalid delimiter\n")
 
     if options.quoting == 'none':
         options.quoting = csv.QUOTE_NONE
@@ -1141,8 +1138,7 @@ def main():
     elif options.quoting == 'all':
         options.quoting = csv.QUOTE_ALL
     else:
-        sys.stderr.write("error: invalid quoting\n")
-        sys.exit(1)
+        sys.exit("error: invalid quoting\n")
 
     if options.lineterminator == '\n':
         pass
@@ -1153,8 +1149,7 @@ def main():
     elif options.lineterminator == '\\r\\n':
         options.lineterminator = '\r\n'
     else:
-        sys.stderr.write("error: invalid line terminator\n")
-        sys.exit(1)
+        sys.exit("error: invalid line terminator\n")
 
     if options.sheetdelimiter == '--------':
         pass
@@ -1165,8 +1160,7 @@ def main():
     elif options.sheetdelimiter[0] == 'x':
         options.sheetdelimiter = chr(int(options.sheetdelimiter[1:]))
     else:
-        sys.stderr.write("error: invalid sheet delimiter\n")
-        sys.exit(1)
+        sys.exit("error: invalid sheet delimiter\n")
 
     kwargs = {
         'delimiter': options.delimiter,
@@ -1202,12 +1196,11 @@ def main():
             if options.sheetname:
                 sheetid = xlsx2csv.getSheetIdByName(options.sheetname)
                 if not sheetid:
-                    raise XlsxException("Sheet '%s' not found" % options.sheetname)
+                    sys.exit("Sheet '%s' not found" % options.sheetname)
             xlsx2csv.convert(outfile, sheetid)
     except XlsxException:
         _, e, _ = sys.exc_info()
-        sys.stderr.write(str(e) + "\n")
-        sys.exit(1)
+        sys.exit(str(e) + "\n")
 
 
 if __name__ == "__main__":
