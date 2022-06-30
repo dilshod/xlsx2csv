@@ -79,6 +79,7 @@ pip install xlsx2csv
                         exclude sheets named matching given pattern, only
                         effects when -a option is enabled.
   -m, --merge-cells     merge cells
+  -rows, --rows     convert number of rows from the begining in sheets. Include empty row.
 ```
 
 Usage with folder containing multiple `xlxs` files:
