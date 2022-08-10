@@ -155,7 +155,7 @@ class XlsxValueError(XlsxException):
 
 class Xlsx2csv:
     """
-     Usage: Xlsx2csv("test.xslx", **params).convert("test.csv", sheetid=1)
+     Usage: Xlsx2csv("test.xlsx", **params).convert("test.csv", sheetid=1)
      Input:
        xlsxfile - path to file or filehandle
      options:
