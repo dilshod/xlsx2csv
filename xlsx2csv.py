@@ -26,7 +26,7 @@ __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
 __license__ = "MIT"
 __version__ = "0.8"
 
-import csv, datetime, zipfile, string, sys, os, re, signal
+import csv, datetime, zipfile, sys, os, re, signal
 import xml.parsers.expat
 from xml.dom import minidom
 
@@ -129,9 +129,6 @@ CONTENT_TYPES = {
 
 DEFAULT_APP_PATH = "/xl"
 DEFAULT_WORKBOOK_PATH = DEFAULT_APP_PATH + "/workbook.xml"
-
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
 
 class XlsxException(Exception):
     pass
