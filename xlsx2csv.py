@@ -814,15 +814,15 @@ class Sheet:
 
                 if format_str in FORMATS:
                     format_type = FORMATS[format_str]
-                elif re.match("^\d+(\.\d+)?$", self.data) and re.match(".*[hsmdyY]", format_str) and not re.match(
+                elif re.match(r"^\d+(\.\d+)?$", self.data) and re.match(".*[hsmdyY]", format_str) and not re.match(
                         '.*\[.*[dmhys].*\]', format_str):
                     # it must be date format
                     if float(self.data) < 1:
                         format_type = "time"
                     else:
                         format_type = "date"
-                elif re.match("^-?\d+(.\d+)?$", self.data) or (
-                            self.scifloat and re.match("^-?\d+(.\d+)?([eE]-?\d+)?$", self.data)):
+                elif re.match(r"^-?\d+(.\d+)?$", self.data) or (
+                            self.scifloat and re.match(r"^-?\d+(.\d+)?([eE]-?\d+)?$", self.data)):
                     format_type = "float"
                 if format_type == 'date' and self.dateformat == 'float':
                     format_type = "float"
@@ -908,9 +908,9 @@ class Sheet:
         elif name == 'dimension':
             rng = attrs.get("ref").split(":")
             if len(rng) > 1:
-                start = re.match("^([A-Z]+)(\d+)$", rng[0])
+                start = re.match(r"^([A-Z]+)(\d+)$", rng[0])
                 if (start):
-                    end = re.match("^([A-Z]+)(\d+)$", rng[1])
+                    end = re.match(r"^([A-Z]+)(\d+)$", rng[1])
                     startCol = start.group(1)
                     endCol = end.group(1)
                     self.columns_count = 0
@@ -995,8 +995,8 @@ class Sheet:
         if len(rng) == 1:
             yield rangeStr
         else:
-            start = re.match("^([A-Z]+)(\d+)$", rng[0])
-            end = re.match("^([A-Z]+)(\d+)$", rng[1])
+            start = re.match(r"^([A-Z]+)(\d+)$", rng[0])
+            end = re.match(r"^([A-Z]+)(\d+)$", rng[1])
             if not start or not end:
                 return
             startCol = start.group(1)
