@@ -192,6 +192,7 @@ class Xlsx2csv:
         options.setdefault("ignore_formats", [''])
         options.setdefault("lineterminator", "\n")
         options.setdefault("outputencoding", "utf-8")
+        options.setdefault("ignore_invalid_char_data", False)
 
         self.options = options
         try:
@@ -867,8 +868,14 @@ class Sheet:
                         # unsupported float formatting
                         self.data = ("%f" % (float(self.data))).rstrip('0').rstrip('.')
 
-                except (ValueError, OverflowError):  # this catch must be removed, it's hiding potential problems
-                    raise XlsxValueError("Error: potential invalid date format.")
+                except (ValueError, OverflowError):
+                    if self.options['ignore_invalid_char_data']:
+                      # NOTE (khsu): If invalid character data or excel formulas
+                      # are encountered, we set the data to None to avoid reading
+                      # the data from this cell.
+                      self.data = None
+                    else:
+                      raise XlsxValueError("Error: potential invalid date format.")
 
     def handleStartElement(self, name, attrs):
         has_namespace = name.find(":") > 0
