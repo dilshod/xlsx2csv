@@ -29,7 +29,8 @@ classifiers = [
     "Topic :: Utilities",
 ]
 urls = {Homepage = "http://github.com/dilshod/xlsx2csv"}
-dynamic = ["version"]
+#dynamic = ["version"]
+version = "0.8.1"
 
 [project.scripts]
 xlsx2csv = "xlsx2csv:main"

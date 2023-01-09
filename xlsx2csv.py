@@ -24,7 +24,7 @@
 
 __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
 __license__ = "MIT"
-__version__ = "0.8"
+__version__ = "0.8.1"
 
 import csv, datetime, zipfile, sys, os, re, signal
 import xml.parsers.expat
