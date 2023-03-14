@@ -196,9 +196,10 @@ class Xlsx2csv:
         options.setdefault("skip_hidden_rows", True)
 
         self.options = options
+        self.ziphandle = None
         try:
             self.ziphandle = zipfile.ZipFile(xlsxfile)
-        except (zipfile.BadZipFile, IOError):
+        except (zipfile.BadZipfile, IOError):
             raise InvalidXlsxFileException("Invalid xlsx file: " + str(xlsxfile))
 
         self.py3 = sys.version_info[0] == 3
@@ -215,8 +216,9 @@ class Xlsx2csv:
             self.shared_strings.escape_strings()
 
     def __del__(self):
-        # make sure to close zip file, ziphandler does have a close() method
-        self.ziphandle.close()
+        if self.ziphandle:
+            # make sure to close zip file
+            self.ziphandle.close()
 
     def getSheetIdByName(self, name):
         for s in self.workbook.sheets:
@@ -1038,7 +1040,7 @@ def convert_recursive(path, sheetid, outfile, kwargs):
             print("Converting %s to %s" % (fullpath, outfilepath))
             try:
                 Xlsx2csv(fullpath, **kwargs).convert(outfilepath, sheetid)
-            except zipfile.BadZipFile:
+            except zipfile.BadZipfile:
                 raise InvalidXlsxFileException("File %s is not a zip file" % fullpath)
 
 
