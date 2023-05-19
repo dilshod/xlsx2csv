@@ -4,12 +4,15 @@ import shutil
 import subprocess
 from argparse import ArgumentParser
 
+import pandas as pd
+
 from xlsx2csv import convert_recursive
 
 
 def convert_and_upload(source, bq_location):
     bq_load_options = "--autodetect --allow_quoted_newlines=true --schema_update_option=ALLOW_FIELD_ADDITION " \
                       "--schema_update_option=ALLOW_FIELD_RELAXATION --source_format=CSV"
+    pattern = r"(\d{4})(\d{2})(\d{2})"
 
     for i in range(1, 50):
         if os.path.exists(f'temp_{i}'):
@@ -25,11 +28,17 @@ def convert_and_upload(source, bq_location):
 
     with os.scandir(output_dir) as it:
         for file in it:
-            with open(file.path, 'r') as f:
-                first_line = f.readline()
-            first_line = re.sub(r'[\\/ #\-]', '_', first_line)
-            first_line = re.sub(r'[?\n\r]', '', first_line)
-            os.system(f"sed -i '1c\\\\{first_line}' '{file.path}'")
+            match = re.search(pattern, file.path)
+            year = match.group(1)
+            month = match.group(2)
+            day = match.group(3)
+            date = f"{year}-{month}-{day}"
+
+            df = pd.read_csv(file.path)
+            df.columns = [re.sub(r'[\\/ #\-]', '_', col) for col in df.columns]
+            df.columns = [re.sub(r'[?\n\r]', '', col) for col in df.columns]
+            df['date_exported'] = date
+            df.to_csv(file.path, index=False)
 
     os.system("gcloud storage rm gs://skynamo_history/temp/**")
 
