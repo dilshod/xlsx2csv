@@ -9,7 +9,7 @@ import pandas as pd
 from xlsx2csv import convert_recursive
 
 
-def convert_and_upload(bq_dest: str, local_source: str | None, c_storage_source: str | None) -> None:
+def convert_and_upload(bq_dest: str, local_source: str = None, c_storage_source: str = None) -> None:
     """Converts all xlsx files in a local or gcloud directory to csv and uploads them to a BigQuery table
 
     Args:
