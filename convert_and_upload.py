@@ -14,8 +14,8 @@ def convert_and_upload(bq_dest: str, local_source: str = None, c_storage_source:
 
     Args:
         bq_dest: The BigQuery table to upload to
-        local_source: The local directory to search for xlsx files
-        c_storage_source: The Cloud Storage directory to search for xlsx files
+        local_source: The local directory to search for xlsx files recursively
+        c_storage_source: The Cloud Storage directory to search for xlsx files recursively
 
     Returns:
         None
@@ -32,12 +32,7 @@ def convert_and_upload(bq_dest: str, local_source: str = None, c_storage_source:
 
     if c_storage_source:
         input_source = find_temp_dir()
-        if c_storage_source.split('.')[-1] != 'xlsx':
-            ending = '*.xlsx'
-            if c_storage_source[-1] != '/':
-                ending = '/*.xlsx'
-            c_storage_source = c_storage_source + ending
-        os.system(f"gcloud storage cp {c_storage_source} {input_source}")
+        os.system(f"gcloud storage cp -r {c_storage_source} {input_source}")
     elif local_source:
         input_source = local_source
     else:
@@ -104,8 +99,8 @@ if __name__ == '__main__':
     parser = ArgumentParser(description='Upload a directory of xlsx files to a BigQuery table')
     parser.add_argument('-t', '--table', help='The output dataset and table name: "dataset.table"')
     parser.add_argument('-l', '--local-source', dest='local_source', default=None,
-                        help='Optional: The local directory source: /path/to/directory')
+                        help='Optional: The local directory source, recursive: /path/to/directory')
     parser.add_argument('-c', '--cloud-source', dest='cloud_source', default=None,
-                        help='Optional: The cloud storage source: gs://bucket/path')
+                        help='Optional: The cloud storage source, recursive: gs://bucket/path')
     args = parser.parse_args()
     convert_and_upload(args.table, args.local_source, args.cloud_source)
