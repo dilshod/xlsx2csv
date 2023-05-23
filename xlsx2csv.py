@@ -958,7 +958,7 @@ class Sheet:
                             val = val.encode("utf-8")
                         d.append(val)
                 else:
-                    d = [""] * (max(self.columns.keys()) + 1)
+                    d = [""] * (max(self.columns_count, max(self.columns.keys()) + 1))
                     for k in self.columns.keys():
                         val = self.columns[k]
                         if not self.py3:
@@ -968,6 +968,8 @@ class Sheet:
                     l = self.spans[1]
                     if len(d) < l:
                         d += (l - len(d)) * ['']
+                if self.columns_count < 0:
+                    self.columns_count = len(d)
 
                 # write empty lines
                 if not self.skip_empty_lines:
