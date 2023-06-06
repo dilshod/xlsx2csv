@@ -791,17 +791,15 @@ class Sheet:
         if self.in_cell_value:
             format_type = None
             format_str = "general"
-            self.collected_string += data
-            self.data = self.collected_string
+            self.data += data
             if self.colType == "s":  # shared string
                 format_type = "string"
-                self.data = self.sharedStrings[int(self.data)]
+                self.data = self.sharedStrings[int(data)]
             elif self.colType == "b":  # boolean
                 format_type = "boolean"
                 self.data = (int(data) == 1 and "TRUE") or (int(data) == 0 and "FALSE") or data
             elif self.colType == "str" or self.colType == "inlineStr":
                 format_type = "string"
-                self.data = data
             elif self.s_attr:
                 s = int(self.s_attr)
 
@@ -892,10 +890,8 @@ class Sheet:
                 self.colIndex += 1
             self.data = ""
             self.in_cell = True
-        elif self.in_cell and (
-                    (name == 'v' or name == 'is') or (has_namespace and (name.endswith(':v') or name.endswith(':is')))):
+        elif self.in_cell and ((name == 'v' or name == 't') or (has_namespace and name.endswith(':v'))):
             self.in_cell_value = True
-            self.collected_string = ""
         elif self.in_sheet and (name == 'row' or (has_namespace and name.endswith(':row'))) and ('r' in attrs) and not (self.skip_hidden_rows and 'hidden' in attrs and attrs['hidden'] == '1'):
             self.rowNum = attrs['r']
             self.in_row = True
@@ -905,9 +901,6 @@ class Sheet:
             self.spans = None
             if 'spans' in attrs:
                 self.spans = [int(i) for i in attrs['spans'].split(" ")[-1].split(":")]
-        elif name == 't':
-            # reset collected string
-            self.collected_string = ""
 
         elif name == 'sheetData' or (has_namespace and name.endswith(':sheetData')):
             self.in_sheet = True
@@ -925,8 +918,7 @@ class Sheet:
 
     def handleEndElement(self, name):
         has_namespace = name.find(":") > 0
-        if self.in_cell and ((name == 'v' or name == 'is' or name == 't') or (
-                    has_namespace and (name.endswith(':v') or name.endswith(':is')))):
+        if self.in_cell and ((name == 'v' or name == 't') or (has_namespace and name.endswith(':v'))):
             self.in_cell_value = False
         elif self.in_cell and (name == 'c' or (has_namespace and name.endswith(':c'))):
             t = 0
