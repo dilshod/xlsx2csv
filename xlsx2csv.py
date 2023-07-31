@@ -26,7 +26,7 @@ __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
 __license__ = "MIT"
 __version__ = "0.8.1"
 
-import csv, datetime, zipfile, sys, os, re, signal
+import csv, datetime, zipfile, sys, os, re, signal, io
 import xml.parsers.expat
 from xml.dom import minidom
 
@@ -196,13 +196,26 @@ class Xlsx2csv:
         options.setdefault("skip_hidden_rows", True)
 
         self.options = options
+        self.py3 = sys.version_info[0] == 3
         self.ziphandle = None
+
+        xlsxinputfile = None
+        if xlsxfile == "-" and self.py3:
+            xlsxfile = "STDIN"
+            if sys.stdin.buffer.seekable():
+                xlsxinputfile = sys.stdin.buffer
+            else:
+                xlsxinputfile = io.BytesIO(sys.stdin.buffer.read())
+        elif xlsxfile == "-" and not self.py3:
+            raise ValueError("The - notation for STDIN is not supported for python2")
+        else:
+            xlsxinputfile = xlsxfile
+
         try:
-            self.ziphandle = zipfile.ZipFile(xlsxfile)
+            self.ziphandle = zipfile.ZipFile(xlsxinputfile)
         except (zipfile.BadZipfile, IOError):
             raise InvalidXlsxFileException("Invalid xlsx file: " + str(xlsxfile))
 
-        self.py3 = sys.version_info[0] == 3
 
         self.content_types = self._parse(ContentTypes, "/[Content_Types].xml")
         self.shared_strings = self._parse(SharedStrings, self.content_types.types["shared_strings"])
