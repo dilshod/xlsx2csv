@@ -61,3 +61,4 @@ compare("variousdelim", ["--all","--sheetdelimiter=x33", "--lineterminator=\\r",
 compare("utf8")
 compare("no_cell_ids")
 compare("sheets_order", ["-a"])
+compare("formatted_inline_string")
