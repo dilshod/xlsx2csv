@@ -1207,6 +1207,8 @@ def main():
     try:
         if os.path.isdir(options.infile):
             convert_recursive(options.infile, sheetid, outfile, kwargs)
+        elif not os.path.exists(options.infile):
+            raise InvalidXlsxFileException("Input file not found!")
         else:
             xlsx2csv = Xlsx2csv(options.infile, **kwargs)
             if options.sheetname:
