@@ -28,6 +28,7 @@ __version__ = "0.8.1"
 
 import csv, datetime, zipfile, sys, os, re, signal, io
 import xml.parsers.expat
+from decimal import Decimal
 from xml.dom import minidom
 
 try:
@@ -870,22 +871,28 @@ class Sheet:
                         t = int(round((float(self.data) % 1) * 24 * 60 * 60, 6))  # it should be in seconds
                         d = datetime.time(int((t // 3600) % 24), int((t // 60) % 60), int(t % 60))
                         self.data = d.strftime(self.timeformat)
-                    elif format_type == 'float' and ('E' in self.data or 'e' in self.data):
-                        self.data = str(self.floatformat or '%f') % float(self.data)
-                    # if cell is general, be aggressive about stripping any trailing 0s, decimal points, etc.
-                    elif format_type == 'float' and format_str == 'general':
-                        self.data = ("%f" % (float(self.data))).rstrip('0').rstrip('.')
-                    elif format_type == 'float' and format_str[0:3] == '0.0':
-                        if self.floatformat:
-                            self.data = str(self.floatformat) % float(self.data)
-                        else:
-                            L = len(format_str.split(".")[1])
-                            if '%' in format_str:
-                                L += 1
-                            self.data = ("%." + str(L) + "f") % float(self.data)
                     elif format_type == 'float':
-                        # unsupported float formatting
-                        self.data = ("%f" % (float(self.data))).rstrip('0').rstrip('.')
+                        data = float(self.data)
+                        if not self.floatformat and data.is_integer():
+                            # repr(float(...)) - workaround to correctly round precision for floats
+                            # repr gives same result on python 2 and 3, while str is different on python 2
+                            self.data = "%i" % Decimal(repr(float(self.data)))
+                        elif ('E' in self.data or 'e' in self.data):
+                            self.data = str(self.floatformat or '%f') % data
+                        # if cell is general, be aggressive about stripping any trailing 0s, decimal points, etc.
+                        elif format_str == 'general':
+                            self.data = ("%f" % data).rstrip('0').rstrip('.')
+                        elif format_str[0:3] == '0.0':
+                            if self.floatformat:
+                                self.data = str(self.floatformat) % data
+                            else:
+                                L = len(format_str.split(".")[1])
+                                if '%' in format_str:
+                                    L += 1
+                                self.data = ("%." + str(L) + "f") % data
+                        else:
+                            # unsupported float formatting
+                            self.data = ("%f" % data).rstrip('0').rstrip('.')
 
                 except (ValueError, OverflowError):  # this catch must be removed, it's hiding potential problems
                     raise XlsxValueError("Error: potential invalid date format.")
