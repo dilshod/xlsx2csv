@@ -847,7 +847,7 @@ class Sheet:
             elif self.colType == "n":
                 format_type = "float"
 
-            if format_type and not format_type in self.ignore_formats:
+            if format_type and not format_type in self.ignore_formats and self.data != "#N/A":
                 try:
                     if format_type == 'date':  # date/time
                         if self.workbook.date1904:
