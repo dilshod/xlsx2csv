@@ -1,3 +1,10 @@
+version 0.8.2 (2023-Dec-13):
+ * add "-" notation for reading from stdin
+ * refactor float formatting in data processing
+ * Added file separator ASCII(28) as optional delimiter
+ * added formatted inline strings support
+ * #228 issue fix
+
 version 0.8.1 (2023-Jan-9):
  * include hidden rows options
 
