@@ -20,15 +20,16 @@ def compare(case, arguments=[]):
         ext = "xlsx"
         if os.path.exists("test/%s.xlsm" % case):
             ext = "xlsm"
-
+        
         if os.name == 'posix':# in case of Linux
-            left = subprocess.check_output(["python%s" %pyver, "./xlsx2csv.py"] + arguments + ["test/%s.%s" %(case, ext)]).decode('utf-8').replace('\r','')
+            command = ["python%s" %pyver]
         elif os.name == 'nt':# in case of Windows
             # Use py.exe http://blog.python.org/2011/07/python-launcher-for-windows_11.html on Windows
-            left = subprocess.check_output(["py", "-%s" %pyver, "./xlsx2csv.py"] + arguments + ["test/%s.%s" %(case, ext)]).decode('utf-8').replace('\r','')
+            command = ["py", "-%s" %pyver] 
         else:
             print("os.name is unexpected: "+os.name)
             sys.exit(1)
+        left = subprocess.check_output(command + ["./xlsx2csv.py"] + arguments + ["test/%s.%s" %(case, ext)]).decode('utf-8').replace('\r','')
 
         f = open("test/%s.csv" %case, "r", encoding="utf-8", newline="")
         right = f.read().replace('\r','')
@@ -41,8 +42,27 @@ def compare(case, arguments=[]):
             failed = True
         else:
             print("OK: %s %s" %(case, pyver))
+
+        # test STDIN, only works for python3
+        if pyver == "2":
+            continue
+
+        xfile = open("test/%s.%s" %(case,ext), "rb")
+        stdin = xfile.read()
+        xfile.close()
+
+        pipe = subprocess.run(command + ["./xlsx2csv.py"] + arguments + ["-"], input = stdin, capture_output = True)
+        stdinleft = pipe.stdout.decode("utf-8").replace('\r','').replace('\r','')
+
+        if stdinleft != right:
+            print("FAILED (STDIN): %s %s" %(case, pyver))
+            failed = True
+        else:
+            print("OK (STDIN): %s %s" %(case, pyver))
+
     if failed:
         sys.exit(1)
+
 
 compare("datetime", ["--dateformat=%Y-%m-%d %H:%M:%S"])
 compare("empty_row")

@@ -38,7 +38,7 @@ pip install xlsx2csv
 ```
 **positional arguments:**
 ```
-  xlsxfile              xlsx file path
+  xlsxfile              xlsx file path, use '-' to read from STDIN
   outfile               output csv file path, or directory if -s 0 is specified
 ```
 **optional arguments:**
