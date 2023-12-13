@@ -1067,7 +1067,7 @@ def main():
 
     if "ArgumentParser" in globals():
         parser = ArgumentParser(description="xlsx to csv converter")
-        parser.add_argument('infile', metavar='xlsxfile', help="xlsx file path")
+        parser.add_argument('infile', metavar='xlsxfile', help="xlsx file path, use '-' to read from STDIN")
         parser.add_argument('outfile', metavar='outfile', nargs='?', help="output csv file path")
         parser.add_argument('-v', '--version', action='version', version=__version__)
         nargs_plus = "+"
@@ -1216,7 +1216,7 @@ def main():
     try:
         if os.path.isdir(options.infile):
             convert_recursive(options.infile, sheetid, outfile, kwargs)
-        elif not os.path.exists(options.infile):
+        elif not os.path.exists(options.infile) and options.infile != "-":
             raise InvalidXlsxFileException("Input file not found!")
         else:
             xlsx2csv = Xlsx2csv(options.infile, **kwargs)

@@ -50,6 +50,10 @@ xlsx2csv - Convert xlsx xml files to csv format
 
 The conversion uses Expat SAX parser for xml processing.
 
+=head1 STDIN
+
+Use "-" for INFILE to read from the STDIN.
+
 =head1 OPTIONS
 
 =over 4
