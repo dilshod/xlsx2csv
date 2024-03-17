@@ -222,8 +222,11 @@ class Xlsx2csv:
         self.shared_strings = self._parse(SharedStrings, self.content_types.types["shared_strings"])
         self.styles = self._parse(Styles, self.content_types.types["styles"])
         self.workbook = self._parse(Workbook, self.content_types.types["workbook"])
-        workbook_relationships = list(filter(lambda r: "book" in r, self.content_types.types["relationships"]))[0]
-        self.workbook.relationships = self._parse(Relationships, workbook_relationships)
+        workbook_relationships = list(filter(lambda r: "book" in r, self.content_types.types["relationships"]))
+        if len(workbook_relationships) > 0:
+            self.workbook.relationships = self._parse(Relationships, workbook_relationships[0])
+        else:
+            self.workbook.relationships = Relationships()
         if self.options['no_line_breaks']:
             self.shared_strings.replace_line_breaks()
         elif self.options['escape_strings']:
