@@ -836,7 +836,7 @@ class Sheet:
                 if format_str in FORMATS:
                     format_type = FORMATS[format_str]
                 elif re.match(r"^\d+(\.\d+)?$", self.data) and re.match(".*[hsmdyY]", format_str) and not re.match(
-                        '.*\[.*[dmhys].*\]', format_str):
+                        r".*\[.*[dmhys].*\]", format_str):
                     # it must be date format
                     if float(self.data) < 1:
                         format_type = "time"
