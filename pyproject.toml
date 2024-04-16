@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "xlsx2csv"
 authors = [{name = "Dilshod Temirkhdojaev", email = "tdilshod@gmail.com"}]
 description = "xlsx to csv converter"
+readme = "README.md"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
