@@ -227,9 +227,7 @@ class Xlsx2csv:
             self.workbook.relationships = self._parse(Relationships, workbook_relationships[0])
         else:
             self.workbook.relationships = Relationships()
-        if self.options['no_line_breaks']:
-            self.shared_strings.replace_line_breaks()
-        elif self.options['escape_strings']:
+        if self.options['escape_strings']:
             self.shared_strings.escape_strings()
 
     def __del__(self):
@@ -365,6 +363,7 @@ class Xlsx2csv:
                 sheet.set_scifloat(self.options['scifloat'])
                 sheet.set_ignore_formats(self.options['ignore_formats'])
                 sheet.set_skip_hidden_rows(self.options['skip_hidden_rows'])
+                sheet.set_no_line_breaks(self.options['no_line_breaks'])
                 if self.options['escape_strings'] and sheet.filedata:
                     sheet.filedata = re.sub(r"(<v>[^<>]+)&#10;([^<>]+</v>)", r"\1\\n\2",
                                             re.sub(r"(<v>[^<>]+)&#9;([^<>]+</v>)", r"\1\\t\2",
@@ -674,6 +673,7 @@ class Sheet:
         self.mergeCells = {}
         self.ignore_formats = []
         self.skip_hidden_rows = False
+        self.no_line_breaks = False
 
         self.colIndex = 0
         self.colNum = ""
@@ -703,6 +703,9 @@ class Sheet:
 
     def set_skip_hidden_rows(self, skip_hidden_rows):
         self.skip_hidden_rows = skip_hidden_rows
+
+    def set_no_line_breaks(self, no_line_breaks):
+        self.no_line_breaks = no_line_breaks
 
     def set_merge_cells(self, mergecells):
         if not mergecells:
@@ -957,6 +960,9 @@ class Sheet:
                     self.mergeCells[self.colNum + self.rowNum]['value'] = d
                 else:
                     d = self.mergeCells[self.mergeCells[self.colNum + self.rowNum]['copyFrom']]['value']
+
+            if self.no_line_breaks:
+              d = d.replace("\r", " ").replace("\n", " ").replace("\t", " ")
 
             self.columns[t - 1 + self.colIndex] = d
             self.in_cell = False
