@@ -248,6 +248,11 @@ class Xlsx2csv:
             if not sheetid:
                 raise XlsxException("Sheet '%s' not found" % sheetname)
         if sheetid > 0:
+            if not os.path.exists(outfile):
+                os.makedirs(outfile)
+            elif os.path.isfile(outfile):
+                raise OutFileAlreadyExistsException("File " + str(outfile) + " already exists!")
+                return
             self._convert(sheetid, outfile)
         else:
             if isinstance(outfile, str):
