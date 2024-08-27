@@ -255,6 +255,11 @@ class Xlsx2csv:
                     os.makedirs(outfile)
                 elif os.path.isfile(outfile):
                     raise OutFileAlreadyExistsException("File " + str(outfile) + " already exists!")
+            elif hasattr(outfile, "open"):
+                if outfile.exists():
+                    raise OutFileAlreadyExistsException("File " + str(outfile) + " already exists!")
+                outfile = outfile.open("w+", encoding=self.options['outputencoding'], newline="")
+
             for s in self.workbook.sheets:
                 sheetname = s['name']
                 sheetstate = s['state']
@@ -307,6 +312,10 @@ class Xlsx2csv:
             else:
                 raise XlsxException("error: version of your python is not supported: " + str(sys.version_info) + "\n")
             closefile = True
+        elif hasattr(outfile, "open"):
+            outfile = outfile.open("w+", encoding=self.options['outputencoding'], newline="")
+            closefile = True
+
         try:
             writer = csv.writer(outfile, quoting=self.options['quoting'], delimiter=self.options['delimiter'],
                                 lineterminator=self.options['lineterminator'])
