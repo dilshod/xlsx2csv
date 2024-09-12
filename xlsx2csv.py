@@ -120,13 +120,13 @@ STANDARD_FORMATS = {
     48: '##0.0e+0',
     49: '@',
 }
-CONTENT_TYPES = {
+CONTENT_TYPES = set((
     'shared_strings',
     'styles',
     'workbook',
     'worksheet',
     'relationships',
-}
+))
 
 DEFAULT_APP_PATH = "/xl"
 DEFAULT_WORKBOOK_PATH = DEFAULT_APP_PATH + "/workbook.xml"
