@@ -120,6 +120,9 @@ STANDARD_FORMATS = {
     48: '##0.0e+0',
     49: '@',
 }
+EXCEL_ERROR_VALUES = [
+    '#N/A', '#REF!', '#DIV/0!', '#CALC!', '#NAME!', '#NULL!', '#NUM!', '#SPILL!', '#VALUE!'
+]
 CONTENT_TYPES = set((
     'shared_strings',
     'styles',
@@ -862,7 +865,7 @@ class Sheet:
             elif self.colType == "n":
                 format_type = "float"
 
-            if format_type and not format_type in self.ignore_formats and self.data != "#N/A":
+            if format_type and not format_type in self.ignore_formats and self.data not in EXCEL_ERROR_VALUES:
                 try:
                     if format_type == 'date':  # date/time
                         if self.workbook.date1904:
