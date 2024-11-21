@@ -54,7 +54,9 @@ pip install xlsx2csv
                         sheet name to convert
   -d DELIMITER, --delimiter DELIMITER
                         delimiter - columns delimiter in csv, 'tab' or 'x09'
-                        for a tab (default: comma ',')
+                        for a tab,
+                        'fs' for fileseparator (ASCII 28) 
+                        (default: comma ',')
   -l LINETERMINATOR, --lineterminator LINETERMINATOR
                         line terminator - lines terminator in csv, '\n' '\r\n'
                         or '\r' (default: os.linesep)
