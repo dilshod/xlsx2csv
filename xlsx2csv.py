@@ -878,7 +878,7 @@ class Sheet:
                         else:
                             # ignore ";@", don't know what does it mean right now
                             # ignore "[$-409], [$-f409], [$-16001]" and similar format codes
-                            dateformat = re.sub(r"\[\$\-[A-z0-9]*\]", "", format_str, 1) \
+                            dateformat = re.sub(r"\[\$\-[A-z0-9]*\]", "", format_str, count=1) \
                                 .replace(";@", "").replace("yyyy", "%Y").replace("yy", "%y") \
                                 .replace("hh:mm", "%H:%M").replace("h", "%I").replace("%H%H", "%H") \
                                 .replace("ss", "%S").replace("dddd", "d").replace("dd", "d").replace("d", "%d") \
