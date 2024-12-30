@@ -1,3 +1,9 @@
+version 0.8.3 (2024-Jul-29):
+ * Fix bug when missing workbook relationship
+ * Update pyproject.toml with python support
+ * Add Python 3.12 support
+ * Fix potential SyntaxError when >= Python 3.12 (regex)
+
 version 0.8.2 (2023-Dec-13):
  * add "-" notation for reading from stdin
  * refactor float formatting in data processing
