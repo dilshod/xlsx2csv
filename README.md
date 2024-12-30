@@ -9,7 +9,7 @@ Handles large XLSX files. Fast and easy to use.
 ## Tested(supported) python versions:
  - 2.4
  - 2.7
- - 3.4 to 3.12
+ - 3.4 to 3.13
 
 ## Installation:
 
