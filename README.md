@@ -97,6 +97,10 @@ Expat SAX parser used for xml parsing.
 
 See alternatives:
 
+Perl:
+
+https://metacpan.org/dist/Spreadsheet-Read/view/scripts/xlsx2csv
+
 Bash:
 http://kirk.webfinish.com/?p=91
 
