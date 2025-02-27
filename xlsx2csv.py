@@ -586,6 +586,9 @@ class Styles:
         return format_str
 
 
+CR_ENTITY_STR = "_x000D_"
+
+
 class SharedStrings:
     def __init__(self):
         self.parser = None
@@ -598,6 +601,7 @@ class SharedStrings:
     def parse(self, filehandle):
         self.parser = xml.parsers.expat.ParserCreate()
         self.parser.CharacterDataHandler = self.handleCharData
+        self.parser.buffer_text = True
         self.parser.StartElementHandler = self.handleStartElement
         self.parser.EndElementHandler = self.handleEndElement
         self.parser.ParseFile(filehandle)
@@ -827,11 +831,20 @@ class Sheet:
             if self.colType == "s":  # shared string
                 format_type = "string"
                 self.data = self.sharedStrings[int(data)]
+
+                # Handle cell string data that has \r\n by changing the value that expat uses for the \r to an empty string.
+                # This happens a lot with older versions of excel, and the character conversion is happening inside expat.
+                if self.data.find(CR_ENTITY_STR) > -1:
+                    self.data = self.data.replace(CR_ENTITY_STR, "")
             elif self.colType == "b":  # boolean
                 format_type = "boolean"
                 self.data = (int(data) == 1 and "TRUE") or (int(data) == 0 and "FALSE") or data
             elif self.colType == "str" or self.colType == "inlineStr":
                 format_type = "string"
+
+                # Again, check for the \r\n change and clear the apply hack
+                if data.find(CR_ENTITY_STR) > -1:
+                    self.data = self.data.replace(CR_ENTITY_STR, "")
             elif self.s_attr:
                 s = int(self.s_attr)
 
