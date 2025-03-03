@@ -586,9 +586,6 @@ class Styles:
         return format_str
 
 
-CR_ENTITY_STR = "_x000D_"
-
-
 class SharedStrings:
     def __init__(self):
         self.parser = None
@@ -647,6 +644,9 @@ class SharedStrings:
             self.t = False
         elif name == 'rPh':
             self.rPh = False
+
+
+XMLPARSER_WINDOWS_NEWLINE_STR = "_x000D_\n"
 
 
 class Sheet:
@@ -834,8 +834,8 @@ class Sheet:
 
                 # Handle cell string data that has \r\n by changing the value that expat uses for the \r to an empty string.
                 # This happens a lot with older versions of excel, and the character conversion is happening inside expat.
-                if self.data.find(CR_ENTITY_STR) > -1:
-                    self.data = self.data.replace(CR_ENTITY_STR, "")
+                if self.data.find(XMLPARSER_WINDOWS_NEWLINE_STR) > -1:
+                    self.data = self.data.replace(XMLPARSER_WINDOWS_NEWLINE_STR, "\n")
             elif self.colType == "b":  # boolean
                 format_type = "boolean"
                 self.data = (int(data) == 1 and "TRUE") or (int(data) == 0 and "FALSE") or data
@@ -843,8 +843,8 @@ class Sheet:
                 format_type = "string"
 
                 # Again, check for the \r\n change and clear the apply hack
-                if data.find(CR_ENTITY_STR) > -1:
-                    self.data = self.data.replace(CR_ENTITY_STR, "")
+                if data.find(XMLPARSER_WINDOWS_NEWLINE_STR) > -1:
+                    self.data = self.data.replace(XMLPARSER_WINDOWS_NEWLINE_STR, "\n")
             elif self.s_attr:
                 s = int(self.s_attr)
 
