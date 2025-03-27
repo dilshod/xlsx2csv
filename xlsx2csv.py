@@ -877,6 +877,9 @@ class Sheet:
                     format_type = "float"
             elif self.colType == "n":
                 format_type = "float"
+            elif not self.colType and len(self.data) and self.data[0] >= '0' and self.data[0] <= '9':
+                # default assumption for a cell without t attribute is that it is a number
+                format_type = "float"
 
             if format_type and not format_type in self.ignore_formats and self.data not in EXCEL_ERROR_VALUES:
                 try:
