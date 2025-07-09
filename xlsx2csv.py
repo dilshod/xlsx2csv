@@ -911,7 +911,7 @@ class Sheet:
                             # repr(float(...)) - workaround to correctly round precision for floats
                             # repr gives same result on python 2 and 3, while str is different on python 2
                             self.data = "%i" % Decimal(repr(float(self.data)))
-                        elif ('E' in self.data or 'e' in self.data):
+                        elif ('E' in self.data or 'e' in self.data) or self.floatformat:
                             self.data = str(self.floatformat or '%f') % data
                         # if cell is general, be aggressive about stripping any trailing 0s, decimal points, etc.
                         elif format_str == 'general':
