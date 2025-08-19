@@ -929,7 +929,7 @@ class Sheet:
                             self.data = ("%f" % data).rstrip('0').rstrip('.')
 
                 except (ValueError, OverflowError):  # this catch must be removed, it's hiding potential problems
-                    raise XlsxValueError("Error: potential invalid date format.")
+                    raise XlsxValueError("Error: potential invalid date format at row: " + self.rowNum + ", column: " + self.colNum + ", value: " + self.data)
 
     def handleStartElement(self, name, attrs):
         has_namespace = name.find(":") > 0
@@ -1124,7 +1124,7 @@ def main():
     parser.add_argument("-c", "--outputencoding", dest="outputencoding", default="utf-8", action="store",
                         help="encoding of output csv ** Python 3 only ** (default: utf-8)")
     parser.add_argument("-d", "--delimiter", dest="delimiter", default=",",
-                        help="delimiter - columns delimiter in csv, 'tab' or 'x09' for a tab (default: comma ',')")
+                        help="delimiter - columns delimiter in csv, 'tab' or 'x09' for a tab, 'fs' for File Separator (ASCII 28)  (default: comma ',')")
     parser.add_argument("--hyperlinks", "--hyperlinks", dest="hyperlinks", action="store_true", default=False,
                         help="include hyperlinks")
     parser.add_argument("-e", "--escape", dest='escape_strings', default=False, action="store_true",
