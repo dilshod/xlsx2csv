@@ -1074,11 +1074,11 @@ class Sheet:
                     t = t // 26 - 1
 
 
-def convert_recursive(path, sheetid, outfile, kwargs):
+def convert_recursive(path, sheetid, outfile, kwargs, continue_on_error=False):
     for name in os.listdir(path):
         fullpath = os.path.join(path, name)
         if os.path.isdir(fullpath):
-            convert_recursive(fullpath, sheetid, outfile, kwargs)
+            convert_recursive(fullpath, sheetid, outfile, kwargs, continue_on_error)
         else:
             outfilepath = outfile
             if isinstance(outfilepath, type(sys.stdout)):
@@ -1091,8 +1091,15 @@ def convert_recursive(path, sheetid, outfile, kwargs):
             print("Converting %s to %s" % (fullpath, outfilepath))
             try:
                 Xlsx2csv(fullpath, **kwargs).convert(outfilepath, sheetid)
-            except zipfile.BadZipfile:
-                raise InvalidXlsxFileException("File %s is not a zip file" % fullpath)
+            except Exception as e:
+                if continue_on_error:
+                    print("ERROR processing file '%s': %s" % (fullpath, str(e)), file=sys.stderr)
+                    continue
+                else:
+                    if isinstance(e, zipfile.BadZipfile):
+                        raise InvalidXlsxFileException("File %s is not a zip file" % fullpath)
+                    else:
+                        raise
 
 
 def main():
@@ -1166,6 +1173,8 @@ def main():
                         help="sheet number to convert")
     parser.add_argument("--include-hidden-rows", dest="include_hidden_rows", default=False, action="store_true",
                         help="include hidden rows")
+    parser.add_argument("--continue-on-error", dest="continue_on_error", default=False, action="store_true",
+                        help="continue processing remaining files when an error occurs during batch processing")
 
     if argparser:
         options = parser.parse_args()
@@ -1252,7 +1261,7 @@ def main():
     outfile = options.outfile or sys.stdout
     try:
         if os.path.isdir(options.infile):
-            convert_recursive(options.infile, sheetid, outfile, kwargs)
+            convert_recursive(options.infile, sheetid, outfile, kwargs, options.continue_on_error)
         elif not os.path.exists(options.infile) and options.infile != "-":
             raise InvalidXlsxFileException("Input file not found!")
         else:

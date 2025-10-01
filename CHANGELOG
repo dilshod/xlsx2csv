@@ -1,3 +1,6 @@
+version 0.8.4 (2025-Oct-1):
+ * Add --continue-on-error option for batch processing to continue when individual files fail
+
 version 0.8.3 (2024-Jul-29):
  * Fix bug when missing workbook relationship
  * Update pyproject.toml with python support
