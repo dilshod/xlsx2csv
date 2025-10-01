@@ -90,6 +90,12 @@ will output each file in the input directory converted to `.csv` in the output d
 Usage from within Python:
 ```
   from xlsx2csv import Xlsx2csv
+
+  # Recommended: using context manager for proper resource cleanup
+  with Xlsx2csv("myfile.xlsx", outputencoding="utf-8") as xlsx2csv:
+      xlsx2csv.convert("myfile.csv")
+
+  # Simple usage (but may cause ResourceWarning in modern Python)
   Xlsx2csv("myfile.xlsx", outputencoding="utf-8").convert("myfile.csv")
 ```
 

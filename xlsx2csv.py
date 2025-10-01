@@ -156,7 +156,12 @@ class XlsxValueError(XlsxException):
 
 class Xlsx2csv:
     """
-     Usage: Xlsx2csv("test.xlsx", **params).convert("test.csv", sheetid=1)
+     Usage:
+       with Xlsx2csv("test.xlsx", **params) as xlsx2csv:
+           xlsx2csv.convert("test.csv", sheetid=1)
+
+     Or for simple usage:
+       Xlsx2csv("test.xlsx", **params).convert("test.csv", sheetid=1)
      Input:
        xlsxfile - path to file or filehandle
      options:
@@ -233,10 +238,21 @@ class Xlsx2csv:
         if self.options['escape_strings']:
             self.shared_strings.escape_strings()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
     def __del__(self):
+        # Fallback cleanup, but prefer explicit close() or using as context manager
+        self.close()
+
+    def close(self):
+        """Explicitly close the underlying zip file handle."""
         if self.ziphandle:
-            # make sure to close zip file
             self.ziphandle.close()
+            self.ziphandle = None
 
     def getSheetIdByName(self, name):
         for s in self.workbook.sheets:
@@ -1090,7 +1106,8 @@ def convert_recursive(path, sheetid, outfile, kwargs, continue_on_error=False):
 
             print("Converting %s to %s" % (fullpath, outfilepath))
             try:
-                Xlsx2csv(fullpath, **kwargs).convert(outfilepath, sheetid)
+                with Xlsx2csv(fullpath, **kwargs) as xlsx2csv:
+                    xlsx2csv.convert(outfilepath, sheetid)
             except Exception as e:
                 if continue_on_error:
                     print("ERROR processing file '%s': %s" % (fullpath, str(e)), file=sys.stderr)
@@ -1265,12 +1282,12 @@ def main():
         elif not os.path.exists(options.infile) and options.infile != "-":
             raise InvalidXlsxFileException("Input file not found!")
         else:
-            xlsx2csv = Xlsx2csv(options.infile, **kwargs)
-            if options.sheetname:
-                sheetid = xlsx2csv.getSheetIdByName(options.sheetname)
-                if not sheetid:
-                    sys.exit("Sheet '%s' not found" % options.sheetname)
-            xlsx2csv.convert(outfile, sheetid)
+            with Xlsx2csv(options.infile, **kwargs) as xlsx2csv:
+                if options.sheetname:
+                    sheetid = xlsx2csv.getSheetIdByName(options.sheetname)
+                    if not sheetid:
+                        sys.exit("Sheet '%s' not found" % options.sheetname)
+                xlsx2csv.convert(outfile, sheetid)
     except XlsxException:
         _, e, _ = sys.exc_info()
         sys.exit(str(e) + "\n")
