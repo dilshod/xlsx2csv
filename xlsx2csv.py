@@ -313,7 +313,7 @@ class Xlsx2csv:
             elif sys.version_info[0] == 3:
                 outfile = open(outfile, 'w+', encoding=self.options['outputencoding'], newline="")
             else:
-                raise XlsxException("error: version of your python is not supported: " + str(sys.version_info) + "\n")
+                raise XlsxException("error: version of your Python is not supported: " + str(sys.version_info) + "\n")
             closefile = True
         elif hasattr(outfile, "open"):
             outfile = outfile.open("w+", encoding=self.options['outputencoding'], newline="")
@@ -1112,7 +1112,7 @@ def main():
     if "ArgumentParser" in globals():
         parser = ArgumentParser(description="xlsx to csv converter")
         parser.add_argument('infile', metavar='xlsxfile', help="xlsx file path, use '-' to read from STDIN")
-        parser.add_argument('outfile', metavar='outfile', nargs='?', help="output csv file path")
+        parser.add_argument('outfile', metavar='outfile', nargs='?', help="output CSV file path")
         parser.add_argument('-v', '--version', action='version', version=__version__)
         nargs_plus = "+"
         argparser = True
@@ -1129,17 +1129,17 @@ def main():
     parser.add_argument("-a", "--all", dest="all", default=False, action="store_true",
                         help="export all sheets")
     parser.add_argument("-c", "--outputencoding", dest="outputencoding", default="utf-8", action="store",
-                        help="encoding of output csv ** Python 3 only ** (default: utf-8)")
+                        help="encoding of output CSV **Python 3 only** (default: utf-8)")
     parser.add_argument("-d", "--delimiter", dest="delimiter", default=",",
-                        help="delimiter - columns delimiter in csv, 'tab' or 'x09' for a tab (default: comma ',')")
+                        help="delimiter - column delimiter in CSV, 'tab' or 'x09' for a tab (default: comma ',')")
     parser.add_argument("--hyperlinks", "--hyperlinks", dest="hyperlinks", action="store_true", default=False,
                         help="include hyperlinks")
     parser.add_argument("-e", "--escape", dest='escape_strings', default=False, action="store_true",
-                        help="Escape \\r\\n\\t characters")
+                        help="escape \\r\\n\\t characters")
     parser.add_argument("--no-line-breaks", "--no-line-breaks", dest='no_line_breaks', default=False, action="store_true",
-                        help="Replace \\r\\n\\t with space")
+                        help="replace \\r\\n\\t with space")
     parser.add_argument("-E", "--exclude_sheet_pattern", nargs=nargs_plus, dest="exclude_sheet_pattern", default="",
-                        help="exclude sheets named matching given pattern, only effects when -a option is enabled.")
+                        help="exclude sheets with names matching the given pattern, only affects when -a option is enabled.")
     parser.add_argument("-f", "--dateformat", dest="dateformat",
                         help="override date/time format (ex. %%Y/%%m/%%d)")
     parser.add_argument("-t", "--timeformat", dest="timeformat",
@@ -1149,13 +1149,13 @@ def main():
     parser.add_argument("--sci-float", dest="scifloat", default=False, action="store_true",
                         help="force scientific notation to float")
     parser.add_argument("-I", "--include_sheet_pattern", nargs=nargs_plus, dest="include_sheet_pattern", default="^.*$",
-                        help="only include sheets named matching given pattern, only effects when -a option is enabled.")
+                        help="only include sheets with names matching the given pattern, only affects when -a option is enabled.")
     parser.add_argument("--exclude_hidden_sheets", default=False, action="store_true",
-                        help="Exclude hidden sheets from the output, only effects when -a option is enabled.")
+                        help="exclude hidden sheets from the output, only affects when -a option is enabled.")
     parser.add_argument("--ignore-formats", nargs=nargs_plus, type=str, dest="ignore_formats", default=[''],
-                        help="Ignores format for specific data types.")
+                        help="ignore format for specific data types")
     parser.add_argument("-l", "--lineterminator", dest="lineterminator", default="\n",
-                        help="line terminator - lines terminator in csv, '\\n' '\\r\\n' or '\\r' (default: \\n)")
+                        help="line terminator - line terminator in CSV, '\\n' '\\r\\n' or '\\r' (default: \\n)")
     parser.add_argument("-m", "--merge-cells", dest="merge_cells", default=False, action="store_true",
                         help="merge cells")
     parser.add_argument("-n", "--sheetname", dest="sheetname", default=None,
@@ -1165,10 +1165,10 @@ def main():
     parser.add_argument("--skipemptycolumns", dest="skip_trailing_columns", default=False, action="store_true",
                         help="skip trailing empty columns")
     parser.add_argument("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
-                        help="sheet delimiter used to separate sheets, pass '' if you do not need delimiter, or 'x07' "
+                        help="sheet delimiter used to separate sheets, pass '' if you do not need a delimiter, or 'x07' "
                              "or '\\f' for form feed (default: '--------')")
     parser.add_argument("-q", "--quoting", dest="quoting", default="minimal",
-                        help="quoting - fields quoting in csv, 'none' 'minimal' 'nonnumeric' or 'all' (default: minimal)")
+                        help="quoting - field quoting in CSV, 'none' 'minimal' 'nonnumeric' or 'all' (default: minimal)")
     parser.add_argument("-s", "--sheet", dest="sheetid", default=1, type=inttype,
                         help="sheet number to convert")
     parser.add_argument("--include-hidden-rows", dest="include_hidden_rows", default=False, action="store_true",
