@@ -219,6 +219,7 @@ class Xlsx2csv:
         options.setdefault("lineterminator", "\n")
         options.setdefault("outputencoding", "utf-8")
         options.setdefault("skip_hidden_rows", True)
+        options.setdefault("ignore_invalid_char_data", False)
 
         self.options = options
         self.py3 = sys.version_info[0] == 3
@@ -966,7 +967,12 @@ class Sheet:
                             self.data = ("%f" % data).rstrip('0').rstrip('.')
 
                 except (ValueError, OverflowError):  # this catch must be removed, it's hiding potential problems
-                    raise XlsxValueError("Error: potential invalid date format.")
+                    if self.options['ignore_invalid_char_data']:
+                        # If invalid character data or excel formulas are encountered,
+                        # we set the data to empty string to avoid conversion errors
+                        self.data = ""
+                    else:
+                        raise XlsxValueError("Error: potential invalid date format.")
 
     def handleStartElement(self, name, attrs):
         has_namespace = name.find(":") > 0
