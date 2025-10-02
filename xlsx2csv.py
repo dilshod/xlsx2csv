@@ -42,6 +42,21 @@ except:
     # python2.4
     from optparse import OptionParser
 
+try:
+    from typing import Union, Optional, Dict, Any, IO, List, TextIO, BinaryIO
+    from types import TracebackType
+except ImportError:
+    # python2.4 or older versions without typing
+    Union = None
+    Optional = None
+    Dict = None
+    Any = None
+    IO = None
+    List = None
+    TextIO = None
+    BinaryIO = None
+    TracebackType = None
+
 # see also ruby-roo lib at: http://github.com/hmcgowan/roo
 FORMATS = {
     'general': 'float',
@@ -183,6 +198,7 @@ class Xlsx2csv:
     """
 
     def __init__(self, xlsxfile, **options):
+        # type: (Union[str, IO[bytes]], **Any) -> None
         options.setdefault("delimiter", ",")
         options.setdefault("quoting", csv.QUOTE_MINIMAL)
         options.setdefault("sheetdelimiter", "--------")
@@ -239,9 +255,11 @@ class Xlsx2csv:
             self.shared_strings.escape_strings()
 
     def __enter__(self):
+        # type: () -> Xlsx2csv
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        # type: (Optional[type], Optional[Exception], Optional[TracebackType]) -> None
         self.close()
 
     def __del__(self):
@@ -249,18 +267,21 @@ class Xlsx2csv:
         self.close()
 
     def close(self):
+        # type: () -> None
         """Explicitly close the underlying zip file handle."""
         if self.ziphandle:
             self.ziphandle.close()
             self.ziphandle = None
 
     def getSheetIdByName(self, name):
+        # type: (str) -> Optional[int]
         for s in self.workbook.sheets:
             if s['name'] == name:
                 return s['index']
         return None
 
     def convert(self, outfile, sheetid=1, sheetname=None):
+        # type: (Union[str, TextIO], int, Optional[str]) -> None
         """outfile - path to file or filehandle"""
         if sheetname:
             sheetid = self.getSheetIdByName(sheetname)
@@ -1091,6 +1112,7 @@ class Sheet:
 
 
 def convert_recursive(path, sheetid, outfile, kwargs, continue_on_error=False):
+    # type: (str, int, Union[str, TextIO], Dict[str, Any], bool) -> None
     for name in os.listdir(path):
         fullpath = os.path.join(path, name)
         if os.path.isdir(fullpath):

@@ -1,6 +1,7 @@
 version 0.8.4 (2025-Oct-1):
  * Add --continue-on-error option for batch processing to continue when individual files fail
  * Fix ResourceWarning by adding context manager support and proper file handle cleanup
+ * Fix invalid name value - Excel uses #NAME? not #NAME! (#298)
 
 version 0.8.3 (2024-Jul-29):
  * Fix bug when missing workbook relationship
