@@ -121,7 +121,7 @@ STANDARD_FORMATS = {
     49: '@',
 }
 EXCEL_ERROR_VALUES = [
-    '#N/A', '#REF!', '#DIV/0!', '#CALC!', '#NAME!', '#NULL!', '#NUM!', '#SPILL!', '#VALUE!'
+    '#N/A', '#REF!', '#DIV/0!', '#CALC!', '#NAME?', '#NULL!', '#NUM!', '#SPILL!', '#VALUE!'
 ]
 CONTENT_TYPES = set((
     'shared_strings',
