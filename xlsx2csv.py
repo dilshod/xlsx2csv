@@ -28,7 +28,7 @@ __version__ = "0.8.4"
 
 import csv, datetime, zipfile, sys, os, re, signal, io
 import xml.parsers.expat
-from decimal import Decimal
+from decimal import Decimal, localcontext, ROUND_HALF_UP
 from xml.dom import minidom
 
 try:
