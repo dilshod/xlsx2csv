@@ -28,7 +28,7 @@ __version__ = "0.8.4"
 
 import csv, datetime, zipfile, sys, os, re, signal, io
 import xml.parsers.expat
-from decimal import Decimal
+from decimal import Decimal, localcontext, ROUND_HALF_UP
 from xml.dom import minidom
 
 try:
@@ -965,6 +965,16 @@ class Sheet:
                         else:
                             # unsupported float formatting
                             self.data = ("%f" % data).rstrip('0').rstrip('.')
+                    elif format_type == 'percentage':
+                        # Always round .5 up, not to nearest even as round() does.
+                        with localcontext() as ctx:
+                            ctx.rounding = ROUND_HALF_UP
+                            if format_str == "0.00%":
+                                quant = "1.00"
+                            else:
+                                quant = "1"
+                            data = (Decimal(self.data) * 100).quantize(Decimal(quant))
+                            self.data = str(data) + "%"
 
                 except (ValueError, OverflowError):  # this catch must be removed, it's hiding potential problems
                     if self.options['ignore_invalid_char_data']:
