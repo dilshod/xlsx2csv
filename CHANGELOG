@@ -1,3 +1,6 @@
+version 0.8.6 (2026-Jan-30):
+ * Fix float formatting regression where numbers like 1.5 displayed as 1.500000 when using floatformat option
+
 version 0.8.5 (2026-Jan-30):
  * Add percentage rendering support for Excel percentage formatted cells
  * Add safe handling of Excel error values with ignore_invalid_char_data option

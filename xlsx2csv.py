@@ -24,7 +24,7 @@
 
 __author__ = "Dilshod Temirkhodjaev <tdilshod@gmail.com>"
 __license__ = "MIT"
-__version__ = "0.8.5"
+__version__ = "0.8.6"
 
 import csv, datetime, zipfile, sys, os, re, signal, io
 import xml.parsers.expat
@@ -950,7 +950,7 @@ class Sheet:
                             # repr gives same result on python 2 and 3, while str is different on python 2
                             self.data = "%i" % Decimal(repr(float(self.data)))
                         elif ('E' in self.data or 'e' in self.data) or self.floatformat:
-                            self.data = str(self.floatformat or '%f') % data
+                            self.data = (str(self.floatformat or '%f') % data).rstrip('0').rstrip('.')
                         # if cell is general, be aggressive about stripping any trailing 0s, decimal points, etc.
                         elif format_str == 'general':
                             self.data = ("%f" % data).rstrip('0').rstrip('.')
