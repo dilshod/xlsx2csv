@@ -1,3 +1,14 @@
+version 0.8.5 (2026-Jan-30):
+ * Add percentage rendering support for Excel percentage formatted cells
+ * Add safe handling of Excel error values with ignore_invalid_char_data option
+ * Add type hints to xlsx2csv API for better IDE support and type checking
+ * Add Python 3.13 support and compatibility
+ * Fix deprecation warning for Python 3.13 regex substitution
+ * Fix handling of cells with windows-style newline \r\n characters
+ * Float formatting improvements and set float as default cell type
+ * Update copyright year to current year
+ * Add missing imports for better module organization
+
 version 0.8.4 (2025-Oct-1):
  * Add --continue-on-error option for batch processing to continue when individual files fail
  * Fix ResourceWarning by adding context manager support and proper file handle cleanup
