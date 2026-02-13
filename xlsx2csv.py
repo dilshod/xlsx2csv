@@ -220,6 +220,7 @@ class Xlsx2csv:
         options.setdefault("outputencoding", "utf-8")
         options.setdefault("skip_hidden_rows", True)
         options.setdefault("ignore_invalid_char_data", False)
+        options.setdefault("ignore_percentage", False)
 
         self.options = options
         self.py3 = sys.version_info[0] == 3
@@ -414,6 +415,7 @@ class Xlsx2csv:
                 sheet.set_ignore_formats(self.options['ignore_formats'])
                 sheet.set_skip_hidden_rows(self.options['skip_hidden_rows'])
                 sheet.set_no_line_breaks(self.options['no_line_breaks'])
+                sheet.set_ignore_percentage(self.options['ignore_percentage'])
                 if self.options['escape_strings'] and sheet.filedata:
                     sheet.filedata = re.sub(r"(<v>[^<>]+)&#10;([^<>]+</v>)", r"\1\\n\2",
                                             re.sub(r"(<v>[^<>]+)&#9;([^<>]+</v>)", r"\1\\t\2",
@@ -728,6 +730,7 @@ class Sheet:
         self.ignore_formats = []
         self.skip_hidden_rows = False
         self.no_line_breaks = False
+        self.ignore_percentage = False
 
         self.colIndex = 0
         self.colNum = ""
@@ -760,6 +763,9 @@ class Sheet:
 
     def set_no_line_breaks(self, no_line_breaks):
         self.no_line_breaks = no_line_breaks
+
+    def set_ignore_percentage(self, ignore_percentage):
+        self.ignore_percentage = ignore_percentage
 
     def set_merge_cells(self, mergecells):
         if not mergecells:
@@ -966,15 +972,19 @@ class Sheet:
                             # unsupported float formatting
                             self.data = ("%f" % data).rstrip('0').rstrip('.')
                     elif format_type == 'percentage':
-                        # Always round .5 up, not to nearest even as round() does.
-                        with localcontext() as ctx:
-                            ctx.rounding = ROUND_HALF_UP
-                            if format_str == "0.00%":
-                                quant = "1.00"
-                            else:
-                                quant = "1"
-                            data = (Decimal(self.data) * 100).quantize(Decimal(quant))
-                            self.data = str(data) + "%"
+                        if not self.ignore_percentage:
+                            # Always round .5 up, not to nearest even as round() does.
+                            with localcontext() as ctx:
+                                ctx.rounding = ROUND_HALF_UP
+                                if format_str == "0.00%":
+                                    quant = "1.00"
+                                else:
+                                    quant = "1"
+                                data = (Decimal(self.data) * 100).quantize(Decimal(quant))
+                                self.data = str(data) + "%"
+                        else:
+                            # When ignoring percentage formatting, output the raw decimal value
+                            self.data = ("%f" % float(self.data)).rstrip('0').rstrip('.')
 
                 except (ValueError, OverflowError):  # this catch must be removed, it's hiding potential problems
                     if self.options['ignore_invalid_char_data']:
@@ -1230,6 +1240,8 @@ def main():
                         help="include hidden rows")
     parser.add_argument("--continue-on-error", dest="continue_on_error", default=False, action="store_true",
                         help="continue processing remaining files when an error occurs during batch processing")
+    parser.add_argument("--ignore-percentage", dest="ignore_percentage", default=False, action="store_true",
+                        help="ignore percentage formatting and output raw values")
 
     if argparser:
         options = parser.parse_args()
@@ -1307,7 +1319,8 @@ def main():
         'outputencoding': options.outputencoding,
         'lineterminator': options.lineterminator,
         'ignore_formats': options.ignore_formats,
-        'skip_hidden_rows': not options.include_hidden_rows
+        'skip_hidden_rows': not options.include_hidden_rows,
+        'ignore_percentage': options.ignore_percentage
     }
     sheetid = options.sheetid
     if options.all:
