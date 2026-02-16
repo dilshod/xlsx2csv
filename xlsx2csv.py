@@ -711,7 +711,6 @@ class Sheet:
         self.cellId = None
         self.s_attr = None
         self.data = None
-        self.max_columns = -1
 
         self.dateformat = None
         self.timeformat = "%H:%M"  # default time format
@@ -1095,13 +1094,9 @@ class Sheet:
                         d.append("")
 
                     if self.skip_trailing_columns:
-                        if self.max_columns < 0:
-                            self.max_columns = len(d)
-                            while len(d) > 0 and d[-1] == "":
-                                d = d[0:-1]
-                                self.max_columns = self.max_columns - 1
-                        elif self.max_columns > 0:
-                            d = d[0:self.max_columns]
+                        while len(d) > 0 and d[-1] == "":
+                            d.pop()
+
                     self.writer.writerow(d)
 
             self.in_row = False
