@@ -45,3 +45,22 @@ nosetests.xml
 
 # PyCharm
 .idea
+
+# Testing
+.pytest_cache/
+htmlcov/
+coverage.xml
+.coverage.*
+
+# Claude Code
+.claude/*
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# IDEs
+.vscode/
+*.code-workspace
