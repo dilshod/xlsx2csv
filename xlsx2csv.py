@@ -1009,8 +1009,12 @@ class Sheet:
             self.in_cell = True
         elif self.in_cell and ((name == 'v' or name == 't') or (has_namespace and name.endswith(':v'))):
             self.in_cell_value = True
-        elif self.in_sheet and (name == 'row' or (has_namespace and name.endswith(':row'))) and ('r' in attrs) and not (self.skip_hidden_rows and 'hidden' in attrs and attrs['hidden'] == '1'):
-            self.rowNum = attrs['r']
+        elif self.in_sheet and (name == 'row' or (has_namespace and name.endswith(':row'))) and not (self.skip_hidden_rows and 'hidden' in attrs and attrs['hidden'] == '1'):
+            self.rowIndex += 1
+            if 'r' in attrs:
+                self.rowNum = attrs['r']
+            else:
+                self.rowNum = str(self.rowIndex)
             self.in_row = True
             self.colIndex = 0
             self.colNum = ""
@@ -1021,6 +1025,7 @@ class Sheet:
 
         elif name == 'sheetData' or (has_namespace and name.endswith(':sheetData')):
             self.in_sheet = True
+            self.rowIndex = 0
         elif name == 'dimension':
             rng = attrs.get("ref").split(":")
             if len(rng) > 1:
