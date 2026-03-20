@@ -1007,7 +1007,7 @@ class Sheet:
                 self.colIndex += 1
             self.data = ""
             self.in_cell = True
-        elif self.in_cell and ((name == 'v' or name == 't') or (has_namespace and name.endswith(':v'))):
+        elif self.in_cell and ((name == 'v' or name == 't') or (has_namespace and (name.endswith(':v') or name.endswith(':t')))):
             self.in_cell_value = True
         elif self.in_sheet and (name == 'row' or (has_namespace and name.endswith(':row'))) and not (self.skip_hidden_rows and 'hidden' in attrs and attrs['hidden'] == '1'):
             self.rowIndex += 1
@@ -1040,7 +1040,7 @@ class Sheet:
 
     def handleEndElement(self, name):
         has_namespace = name.find(":") > 0
-        if self.in_cell and ((name == 'v' or name == 't') or (has_namespace and name.endswith(':v'))):
+        if self.in_cell and ((name == 'v' or name == 't') or (has_namespace and (name.endswith(':v') or name.endswith(':t')))):
             self.in_cell_value = False
         elif self.in_cell and (name == 'c' or (has_namespace and name.endswith(':c'))):
             t = 0
