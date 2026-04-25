@@ -149,6 +149,8 @@ CONTENT_TYPES = set((
 DEFAULT_APP_PATH = "/xl"
 DEFAULT_WORKBOOK_PATH = DEFAULT_APP_PATH + "/workbook.xml"
 
+INVALID_VALUES = ('#N/A', '#VALUE!')
+
 class XlsxException(Exception):
     pass
 
@@ -927,7 +929,9 @@ class Sheet:
 
             if format_type and not format_type in self.ignore_formats and self.data not in EXCEL_ERROR_VALUES:
                 try:
-                    if format_type == 'date':  # date/time
+                    if self.data in INVALID_VALUES:
+                        self.data = None
+                    elif format_type == 'date':  # date/time
                         if self.workbook.date1904:
                             date = datetime.datetime(1904, 1, 1) + datetime.timedelta(float(self.data))
                         else:
