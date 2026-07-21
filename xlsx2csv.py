@@ -874,7 +874,16 @@ class Sheet:
             self.data += data
             if self.colType == "s":  # shared string
                 format_type = "string"
-                self.data = self.sharedStrings[int(data)]
+                # Out-of-range SST index (missing/corrupt sharedStrings) -> empty cell.
+                try:
+                    sst_idx = int(data)
+                except ValueError:
+                    self.data = ""
+                else:
+                    if 0 <= sst_idx < len(self.sharedStrings):
+                        self.data = self.sharedStrings[sst_idx]
+                    else:
+                        self.data = ""
 
                 # Handle cell string data that has \r\n by changing the value that expat uses for the \r to an empty string.
                 # This happens a lot with older versions of excel, and the character conversion is happening inside expat.
