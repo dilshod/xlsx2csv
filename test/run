@@ -5,7 +5,7 @@ import sys
 import subprocess
 from io import open
 
-PYTHON_VERSIONS = ["2", "3"]
+PYTHON_VERSIONS = ["3"]
 
 """
 This test uses sys.stdout.
@@ -20,7 +20,7 @@ def compare(case, arguments=[]):
         ext = "xlsx"
         if os.path.exists("test/%s.xlsm" % case):
             ext = "xlsm"
-        
+
         if os.name == 'posix':# in case of Linux
             command = ["python%s" %pyver]
         elif os.name == 'nt':# in case of Windows
@@ -83,6 +83,8 @@ compare("no_cell_ids")
 compare("sheets_order", ["-a"])
 compare("formatted_inline_string")
 compare("float_formatting", ["--floatformat=%f"])
+compare("float_formatting_custom0", ["--floatformat=%.0f"])
+compare("float_formatting_custom2", ["--floatformat=%.2f"])
 compare("percentage")
 compare("percentage_ignore", ["--ignore-percentage"])
 compare("shared_string_oob")

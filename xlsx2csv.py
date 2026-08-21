@@ -964,14 +964,18 @@ class Sheet:
                             # repr(float(...)) - workaround to correctly round precision for floats
                             # repr gives same result on python 2 and 3, while str is different on python 2
                             self.data = "%i" % Decimal(repr(float(self.data)))
-                        elif ('E' in self.data or 'e' in self.data) or self.floatformat:
-                            self.data = (str(self.floatformat or '%f') % data).rstrip('0').rstrip('.')
+                        elif self.floatformat and self.floatformat != '%f':
+                            self.data = str(self.floatformat) % data
+                        elif 'E' in self.data or 'e' in self.data:
+                            self.data = ("%f" % data).rstrip('0').rstrip('.')
                         # if cell is general, be aggressive about stripping any trailing 0s, decimal points, etc.
                         elif format_str == 'general':
                             self.data = ("%f" % data).rstrip('0').rstrip('.')
                         elif format_str[0:3] == '0.0':
                             if self.floatformat:
-                                self.data = str(self.floatformat) % data
+                                # self.floatformat can only be '%f'
+                                # here; a custom format is already handled above.
+                                self.data = ("%f" % data).rstrip('0').rstrip('.')
                             else:
                                 L = len(format_str.split(".")[1])
                                 if '%' in format_str:

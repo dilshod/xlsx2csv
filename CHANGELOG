@@ -1,3 +1,9 @@
+unreleased:
+ * Fix custom --floatformat values (e.g. %.0f) losing significant trailing zeros
+   (0.8.6's fix for %f applied trailing-zero stripping to all floatformat values,
+   not just the default; a custom format is now applied verbatim, while the
+   default %f formatting keeps stripping trailing zeros/decimal point)
+
 version 0.8.6 (2026-Jan-30):
  * Fix float formatting regression where numbers like 1.5 displayed as 1.500000 when using floatformat option
 
