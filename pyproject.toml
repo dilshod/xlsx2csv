@@ -51,3 +51,109 @@ py-modules = ["xlsx2csv"]
 include-package-data = false
 
 [tool.setuptools_scm]
+
+[tool.poetry]
+name = "xlsx2csv"
+version = "0.8.4"
+description = "xlsx to csv converter"
+authors = ["Dilshod Temirkhdojaev <tdilshod@gmail.com>"]
+readme = "README.md"
+homepage = "http://github.com/dilshod/xlsx2csv"
+license = "MIT"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 2",
+    "Programming Language :: Python :: 2.4",
+    "Programming Language :: Python :: 2.5",
+    "Programming Language :: Python :: 2.6",
+    "Programming Language :: Python :: 2.7",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.0",
+    "Programming Language :: Python :: 3.1",
+    "Programming Language :: Python :: 3.2",
+    "Programming Language :: Python :: 3.3",
+    "Programming Language :: Python :: 3.4",
+    "Programming Language :: Python :: 3.5",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Office/Business",
+    "Topic :: Utilities",
+]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+pytest-cov = "^6.0.0"
+pytest-mock = "^3.14.0"
+
+[tool.poetry.scripts]
+xlsx2csv = "xlsx2csv:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--showlocals",
+    "--cov=xlsx2csv",
+    "--cov-report=html",
+    "--cov-report=xml",
+    "--cov-report=term-missing",
+    "--cov-fail-under=80",
+]
+markers = [
+    "unit: Unit tests that test individual components in isolation",
+    "integration: Integration tests that test multiple components together",
+    "slow: Tests that take a significant amount of time to run",
+]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["xlsx2csv"]
+omit = [
+    "*/tests/*",
+    "*/test/*",
+    "*/__pycache__/*",
+    "*/site-packages/*",
+    "*/dist-packages/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+show_missing = true
+precision = 2
+
+[tool.coverage.html]
+directory = "htmlcov"
