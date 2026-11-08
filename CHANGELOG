@@ -1,4 +1,5 @@
 unreleased:
+ * Skip hidden rows marked with hidden="true" (not only hidden="1") (#266)
  * Fix custom --floatformat values (e.g. %.0f) losing significant trailing zeros
    (0.8.6's fix for %f applied trailing-zero stripping to all floatformat values,
    not just the default; a custom format is now applied verbatim, while the
