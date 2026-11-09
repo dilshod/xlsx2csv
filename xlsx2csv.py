@@ -1035,6 +1035,9 @@ class Sheet:
             self.spans = None
             if 'spans' in attrs:
                 self.spans = [int(i) for i in attrs['spans'].split(" ")[-1].split(":")]
+        elif self.in_sheet and (name == 'row' or (has_namespace and name.endswith(':row'))):
+            # skipped hidden row: it is not a gap, so don't write an empty line for it
+            self.lastRowNum += 1
 
         elif name == 'sheetData' or (has_namespace and name.endswith(':sheetData')):
             self.in_sheet = True
