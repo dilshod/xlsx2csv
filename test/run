@@ -88,6 +88,7 @@ compare("float_formatting_custom2", ["--floatformat=%.2f"])
 compare("percentage")
 compare("percentage_ignore", ["--ignore-percentage"])
 compare("shared_string_oob")
+compare("hidden_rows")
 
 
 def test_dir_sheetname():
@@ -111,6 +112,5 @@ def test_dir_sheetname():
     finally:
         shutil.rmtree(tmp)
     print("OK: dir_sheetname")
-
 
 test_dir_sheetname()
