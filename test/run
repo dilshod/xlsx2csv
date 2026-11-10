@@ -90,3 +90,29 @@ compare("percentage_ignore", ["--ignore-percentage"])
 compare("shared_string_oob")
 compare("date1904_0")
 compare("date1904_1")
+compare("hidden_rows")
+
+
+def test_dir_sheetname():
+    # --sheetname must apply to directory input too, including nested folders (#320)
+    import shutil, tempfile
+    cmd = [sys.executable, "./xlsx2csv.py", "-n", "e"]
+    expected = subprocess.check_output(cmd + ["test/sheets_order.xlsx"])
+    tmp = tempfile.mkdtemp()
+    try:
+        os.mkdir(os.path.join(tmp, "nested"))
+        shutil.copy("test/sheets_order.xlsx", os.path.join(tmp, "a.xlsx"))
+        shutil.copy("test/sheets_order.xlsx", os.path.join(tmp, "nested", "b.xlsx"))
+        subprocess.check_output(cmd + [tmp])
+        for out in (os.path.join(tmp, "a.csv"), os.path.join(tmp, "nested", "b.csv")):
+            f = open(out, "rb")
+            actual = f.read()
+            f.close()
+            if actual != expected:
+                print("FAILED: dir_sheetname %s" % out)
+                sys.exit(1)
+    finally:
+        shutil.rmtree(tmp)
+    print("OK: dir_sheetname")
+
+test_dir_sheetname()
