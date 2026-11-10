@@ -1298,7 +1298,10 @@ def main():
     elif options.delimiter == 'comma':
         options.delimiter = ','
     elif options.delimiter[0] == 'x':
-        options.delimiter = chr(int(options.delimiter[1:]))
+        try:
+            options.delimiter = chr(int(options.delimiter[1:]))
+        except ValueError:
+            sys.exit("error: invalid delimiter\n")
     elif options.delimiter == 'fs' or options.delimiter == 'FS':
         options.delimiter = chr(28)
     else:

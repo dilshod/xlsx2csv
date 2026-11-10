@@ -117,3 +117,16 @@ def test_dir_sheetname():
     print("OK: dir_sheetname")
 
 test_dir_sheetname()
+
+def test_invalid_delimiter():
+    # -d xNN with a non-numeric escape must fail cleanly, without a traceback
+    pipe = subprocess.run([sys.executable, "./xlsx2csv.py", "-d", "xZZ", "test/float.xlsx"],
+                          capture_output=True, text=True)
+    if pipe.returncode == 0 or "Traceback" in pipe.stderr or "invalid delimiter" not in pipe.stderr:
+        print("FAILED: invalid_delimiter")
+        print(" returncode:", pipe.returncode)
+        print(" stderr:", pipe.stderr[-500:])
+        sys.exit(1)
+    print("OK: invalid_delimiter")
+
+test_invalid_delimiter()
