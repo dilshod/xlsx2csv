@@ -88,6 +88,8 @@ compare("float_formatting_custom2", ["--floatformat=%.2f"])
 compare("percentage")
 compare("percentage_ignore", ["--ignore-percentage"])
 compare("shared_string_oob")
+compare("date1904_0")
+compare("date1904_1")
 compare("hidden_rows")
 
 

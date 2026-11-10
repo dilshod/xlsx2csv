@@ -475,12 +475,12 @@ class Workbook:
                 self.date1904 = \
                     workbookDoc.firstChild.getElementsByTagNameNS(
                         workbookDoc.firstChild.namespaceURI, "workbookPr")[0]._attrs['date1904'].value.lower().strip() \
-                    != "false"
+                    in ("1", "true")
             else:
                 self.date1904 = \
                     workbookDoc.firstChild.getElementsByTagName("workbookPr")[0] \
                         ._attrs['date1904'].value.lower().strip() \
-                    != "false"
+                    in ("1", "true")
         except:
             pass
 

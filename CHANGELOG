@@ -1,4 +1,5 @@
 unreleased:
+ * Fix date1904="0" in workbookPr being treated as the 1904 date system (only "1" and "true" enable it)
  * Skip hidden rows marked with hidden="true" (not only hidden="1") (#266), and
    no longer write an empty line in place of each skipped hidden row
  * Fix custom --floatformat values (e.g. %.0f) losing significant trailing zeros
