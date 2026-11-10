@@ -1,4 +1,6 @@
 unreleased:
+ * Fix custom number formats with quoted literal text (e.g. 0 "pcs", 0.0 "mm", #,##0 "days")
+   being misdetected as dates, or having the literal text counted as decimal places
  * Fix date1904="0" in workbookPr being treated as the 1904 date system (only "1" and "true" enable it)
  * Skip hidden rows marked with hidden="true" (not only hidden="1") (#266), and
    no longer write an empty line in place of each skipped hidden row

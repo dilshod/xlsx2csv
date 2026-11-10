@@ -135,6 +135,14 @@ STANDARD_FORMATS = {
     48: '##0.0e+0',
     49: '@',
 }
+
+
+def strip_format_literals(format_str):
+    """Remove literal text from a number format code: quoted text such as
+    0 "pcs" and _x / *x padding. What is left holds only format characters."""
+    return re.sub(r'"[^"]*"|[_*].', '', format_str)
+
+
 EXCEL_ERROR_VALUES = [
     '#N/A', '#REF!', '#DIV/0!', '#CALC!', '#NAME?', '#NULL!', '#NUM!', '#SPILL!', '#VALUE!'
 ]
@@ -916,7 +924,7 @@ class Sheet:
 
                 if format_str in FORMATS:
                     format_type = FORMATS[format_str]
-                elif re.match(r"^\d+(\.\d+)?$", self.data) and re.match(".*[hsmdyY]", format_str) and not re.match(
+                elif re.match(r"^\d+(\.\d+)?$", self.data) and re.match(".*[hsmdyY]", strip_format_literals(format_str)) and not re.match(
                         r".*\[.*[dmhys].*\]", format_str):
                     # it must be date format
                     if float(self.data) < 1:
@@ -977,9 +985,18 @@ class Sheet:
                                 # here; a custom format is already handled above.
                                 self.data = ("%f" % data).rstrip('0').rstrip('.')
                             else:
-                                L = len(format_str.split(".")[1])
-                                if '%' in format_str:
-                                    L += 1
+                                # count the digit placeholders only, not literal text such as 0.0 "mm"
+                                fmt = strip_format_literals(format_str)
+                                frac = fmt.split(".")[1]
+                                if re.search(r"e[+-]", frac):
+                                    # scientific notation (0.00e+00): keep the previous count
+                                    L = len(frac)
+                                    if '%' in fmt:
+                                        L += 1
+                                else:
+                                    L = len(re.match(r"[0#?]*", frac).group())
+                                    if '%' in fmt:
+                                        L += 2
                                 self.data = ("%." + str(L) + "f") % data
                         else:
                             # unsupported float formatting
