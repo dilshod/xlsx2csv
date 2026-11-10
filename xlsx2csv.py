@@ -1158,12 +1158,12 @@ class Sheet:
                     t = t // 26 - 1
 
 
-def convert_recursive(path, sheetid, outfile, kwargs, continue_on_error=False):
-    # type: (str, int, Union[str, TextIO], Dict[str, Any], bool) -> None
+def convert_recursive(path, sheetid, outfile, kwargs, continue_on_error=False, sheetname=None):
+    # type: (str, int, Union[str, TextIO], Dict[str, Any], bool, Optional[str]) -> None
     for name in os.listdir(path):
         fullpath = os.path.join(path, name)
         if os.path.isdir(fullpath):
-            convert_recursive(fullpath, sheetid, outfile, kwargs, continue_on_error)
+            convert_recursive(fullpath, sheetid, outfile, kwargs, continue_on_error, sheetname)
         else:
             outfilepath = outfile
             if isinstance(outfilepath, type(sys.stdout)):
@@ -1176,7 +1176,7 @@ def convert_recursive(path, sheetid, outfile, kwargs, continue_on_error=False):
             print("Converting %s to %s" % (fullpath, outfilepath))
             try:
                 with Xlsx2csv(fullpath, **kwargs) as xlsx2csv:
-                    xlsx2csv.convert(outfilepath, sheetid)
+                    xlsx2csv.convert(outfilepath, sheetid, sheetname)
             except Exception as e:
                 if continue_on_error:
                     print("ERROR processing file '%s': %s" % (fullpath, str(e)), file=sys.stderr)
@@ -1350,7 +1350,7 @@ def main():
     outfile = options.outfile or sys.stdout
     try:
         if os.path.isdir(options.infile):
-            convert_recursive(options.infile, sheetid, outfile, kwargs, options.continue_on_error)
+            convert_recursive(options.infile, sheetid, outfile, kwargs, options.continue_on_error, options.sheetname)
         elif not os.path.exists(options.infile) and options.infile != "-":
             raise InvalidXlsxFileException("Input file not found!")
         else:
