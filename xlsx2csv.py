@@ -948,7 +948,11 @@ class Sheet:
                         if self.workbook.date1904:
                             date = datetime.datetime(1904, 1, 1) + datetime.timedelta(float(self.data))
                         else:
-                            date = datetime.datetime(1899, 12, 30) + datetime.timedelta(float(self.data))
+                            serial = float(self.data)
+                            # The fictitious 1900 leap day is after these dates.
+                            if 1 <= serial < 60:
+                                serial += 1
+                            date = datetime.datetime(1899, 12, 30) + datetime.timedelta(serial)
                         if self.dateformat:
                             # str(dateformat) - python2.5 bug, see: http://bugs.python.org/issue2782
                             self.data = date.strftime(str(self.dateformat))

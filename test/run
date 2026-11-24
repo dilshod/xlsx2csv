@@ -92,6 +92,8 @@ compare("quoted_literals")
 compare("date1904_0")
 compare("date1904_1")
 compare("hidden_rows")
+compare("date1900")
+compare("date1900", ["--dateformat=%Y-%m-%d %H:%M:%S"])
 
 
 def test_dir_sheetname():
