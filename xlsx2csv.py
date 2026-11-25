@@ -711,6 +711,7 @@ class Sheet:
         self.in_row = False
         self.in_cell = False
         self.in_cell_value = False
+        self.in_phonetic = False
 
         self.columns = {}
         self.lastRowNum = 0
@@ -1037,8 +1038,10 @@ class Sheet:
                 self.colIndex += 1
             self.data = ""
             self.in_cell = True
+        elif self.in_cell and (name == 'rPh' or (has_namespace and name.endswith(':rPh'))):
+            self.in_phonetic = True
         elif self.in_cell and ((name == 'v' or name == 't') or (has_namespace and (name.endswith(':v') or name.endswith(':t')))):
-            self.in_cell_value = True
+            self.in_cell_value = not self.in_phonetic
         elif self.in_sheet and (name == 'row' or (has_namespace and name.endswith(':row'))) and not (self.skip_hidden_rows and 'hidden' in attrs and attrs['hidden'] in ('1', 'true')):
             self.rowIndex += 1
             if 'r' in attrs:
@@ -1073,6 +1076,8 @@ class Sheet:
 
     def handleEndElement(self, name):
         has_namespace = name.find(":") > 0
+        if self.in_cell and (name == 'rPh' or (has_namespace and name.endswith(':rPh'))):
+            self.in_phonetic = False
         if self.in_cell and ((name == 'v' or name == 't') or (has_namespace and (name.endswith(':v') or name.endswith(':t')))):
             self.in_cell_value = False
         elif self.in_cell and (name == 'c' or (has_namespace and name.endswith(':c'))):
