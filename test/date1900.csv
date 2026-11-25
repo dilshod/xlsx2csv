@@ -1,0 +1,15 @@
+case,date,clock
+zero,1899-12-30 00:00:00,00:00
+fraction_below_one,1899-12-30 12:00:00,12:00
+first_day,1900-01-01 00:00:00,00:00
+first_day_fraction,1900-01-01 12:00:00,12:00
+second_day,1900-01-02 00:00:00,00:00
+january_last,1900-01-31 00:00:00,00:00
+february_first,1900-02-01 00:00:00,00:00
+last_real_day,1900-02-28 00:00:00,00:00
+last_real_fraction,1900-02-28 12:00:00,12:00
+phantom_day_existing_mapping,1900-02-28 00:00:00,00:00
+phantom_fraction_existing_mapping,1900-02-28 12:00:00,12:00
+march_first,1900-03-01 00:00:00,00:00
+march_fraction,1900-03-01 12:00:00,12:00
+modern_day,2023-03-15 00:00:00,00:00
