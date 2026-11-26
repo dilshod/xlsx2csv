@@ -353,6 +353,10 @@ class Xlsx2csv:
                 self._convert(s['index'], of)
 
     def _convert(self, sheet_index, outfile):
+        sheets_filtered = list(filter(lambda s: s['index'] == sheet_index, self.workbook.sheets))
+        if len(sheets_filtered) == 0:
+            raise XlsxValueError("Sheet with index %i not found or can't be handled" % sheet_index)
+
         closefile = False
         if isinstance(outfile, str):
             if sys.version_info[0] == 2:
@@ -369,10 +373,6 @@ class Xlsx2csv:
         try:
             writer = csv.writer(outfile, quoting=self.options['quoting'], delimiter=self.options['delimiter'],
                                 lineterminator=self.options['lineterminator'])
-
-            sheets_filtered = list(filter(lambda s: s['index'] == sheet_index, self.workbook.sheets))
-            if len(sheets_filtered) == 0:
-                raise XlsxValueError("Sheet with index %i not found or can't be handled" % sheet_index)
 
             sheet_path = None
             # using sheet relation information
