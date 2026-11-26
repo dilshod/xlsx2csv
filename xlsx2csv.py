@@ -358,22 +358,7 @@ class Xlsx2csv:
             raise XlsxValueError("Sheet with index %i not found or can't be handled" % sheet_index)
 
         closefile = False
-        if isinstance(outfile, str):
-            if sys.version_info[0] == 2:
-                outfile = open(outfile, 'wb+')
-            elif sys.version_info[0] == 3:
-                outfile = open(outfile, 'w+', encoding=self.options['outputencoding'], newline="")
-            else:
-                raise XlsxException("error: version of your Python is not supported: " + str(sys.version_info) + "\n")
-            closefile = True
-        elif hasattr(outfile, "open"):
-            outfile = outfile.open("w+", encoding=self.options['outputencoding'], newline="")
-            closefile = True
-
         try:
-            writer = csv.writer(outfile, quoting=self.options['quoting'], delimiter=self.options['delimiter'],
-                                lineterminator=self.options['lineterminator'])
-
             sheet_path = None
             # using sheet relation information
             if 'relation_id' in sheets_filtered[0] and sheets_filtered[0]['relation_id'] is not None:
@@ -408,6 +393,21 @@ class Xlsx2csv:
                 raise SheetNotFoundException("Sheet %i not found" % sheet_index)
             sheet = Sheet(self.workbook, self.shared_strings, self.styles, sheet_file)
             try:
+                # open output only after the sheet is found, so a failed lookup leaves it untouched
+                if isinstance(outfile, str):
+                    if sys.version_info[0] == 2:
+                        outfile = open(outfile, 'wb+')
+                    elif sys.version_info[0] == 3:
+                        outfile = open(outfile, 'w+', encoding=self.options['outputencoding'], newline="")
+                    else:
+                        raise XlsxException("error: version of your Python is not supported: " + str(sys.version_info) + "\n")
+                    closefile = True
+                elif hasattr(outfile, "open"):
+                    outfile = outfile.open("w+", encoding=self.options['outputencoding'], newline="")
+                    closefile = True
+                writer = csv.writer(outfile, quoting=self.options['quoting'], delimiter=self.options['delimiter'],
+                                    lineterminator=self.options['lineterminator'])
+
                 relationships_path = os.path.join(os.path.dirname(sheet_path),
                                                   "_rels",
                                                   os.path.basename(sheet_path) + ".rels")
