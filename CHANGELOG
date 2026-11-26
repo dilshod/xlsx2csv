@@ -1,4 +1,13 @@
-unreleased:
+version 0.8.7 (2026-Nov-26):
+ * Add --ignore-percentage option to output raw values for percentage formatted cells
+ * Support PowerBI exports: rows without an r attribute and namespaced cell text tags (#311)
+ * Fix 1900 date system dates before 1900-03-01 being one day early (#196)
+ * Exclude phonetic (rPh) annotations from inline string cell text
+ * Fix --sheetname being ignored for directory input (#320)
+ * Don't truncate or create the output file when the selected sheet doesn't exist
+   or its worksheet part is missing
+ * Fix crash on cell styles with an unknown numFmtId, with or without applyNumberFormat (#312)
+ * Treat out-of-range shared string indexes as empty cells instead of crashing (#315)
  * Fix custom number formats with quoted literal text (e.g. 0 "pcs", 0.0 "mm", #,##0 "days")
    being misdetected as dates, or having the literal text counted as decimal places
  * Fix date1904="0" in workbookPr being treated as the 1904 date system (only "1" and "true" enable it)
