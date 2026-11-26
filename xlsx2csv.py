@@ -618,7 +618,7 @@ class Styles:
                 if cellXfs._attrs and 'numFmtId' in cellXfs._attrs:
                     numFmtId = int(cellXfs._attrs['numFmtId'].value)
                     if self.chk_exists(numFmtId) == None:
-                        numFmtId = int(cellXfs._attrs.get('applyNumberFormat', 0))
+                        numFmtId = int(cellXfs.getAttribute('applyNumberFormat') or 0)
                     self.cellXfs.append(numFmtId)
                 else:
                     self.cellXfs.append(None)
